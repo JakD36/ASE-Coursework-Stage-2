@@ -1,4 +1,4 @@
-package ase1;
+package ase2.exceptions;
 /**
  * Exception to be thrown when there is an issue with the booking reference for a passenger.
  * Be it either a duplicate booking reference or a booking reference that does not exist in the keys of a map.
