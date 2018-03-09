@@ -1,6 +1,6 @@
-package ase1.data;
+package ase2.model;
 
-import ase1.IllegalReferenceCodeException;
+import ase2.exceptions.IllegalReferenceCodeException;
 
 public class Passenger {
 	private String bookingRefCode;
@@ -23,32 +23,29 @@ public class Passenger {
 	this.flight = flight;
 }
 
-	public String getBookingRefCode() {
+	public synchronized String getBookingRefCode() {
 		return this.bookingRefCode;
 		}
 	
-	public String getFirstName() {
+	public synchronized String getFirstName() {
 		return this.firstName;
 		}
 	
-	public String getLastName() {
+	public synchronized String getLastName() {
 		return this.lastName;
 		}
 	
-	public Flight getFlight() {
+	public synchronized Flight getFlight() {
 		return this.flight;
 		}
 	
-	public boolean equals(Object obj)
+	public synchronized boolean equals(Object obj)
 	{
 		return (obj instanceof Passenger) && (((Passenger)obj).getBookingRefCode().toUpperCase().equals(this.getBookingRefCode().toUpperCase()));
 	}
 
-	public int compareTo(Passenger passenger)
+	public synchronized int compareTo(Passenger passenger)
 	{
 		return this.getBookingRefCode().toUpperCase().compareTo(passenger.getBookingRefCode().toUpperCase());
 	}
-	
-
-
 }
