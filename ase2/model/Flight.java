@@ -1,4 +1,4 @@
-package ase1.data;
+package ase2.model;
 public class Flight {
 	//flight description
 	private String flightCode;
@@ -51,7 +51,7 @@ public class Flight {
 	 * returns the flight code
 	 * @return the flight code
 	 */
-	public String getFlightCode() {
+	public synchronized String getFlightCode() {
 		return flightCode;
 	}
 
@@ -59,7 +59,7 @@ public class Flight {
 	 * returns the destination
 	 * @return the destination
 	 */
-	public String getDestination() {
+	public synchronized String getDestination() {
 		return destination;
 	}
 
@@ -67,7 +67,7 @@ public class Flight {
 	 * returns the max baggage volume
 	 * @return the max baggage volume
 	 */
-	public float getMaxBaggageVolume() {
+	public synchronized float getMaxBaggageVolume() {
 		return maxBaggageVolume;
 	}
 	
@@ -75,7 +75,7 @@ public class Flight {
 	 * returns the max baggage weight
 	 * @return the max baggage weight
 	 */
-	public float getMaxBaggageWeight() {
+	public synchronized float getMaxBaggageWeight() {
 		return maxBaggageWeight;
 	}
 
@@ -83,7 +83,7 @@ public class Flight {
 	 * returns the passenger capacity
 	 * @return the passenger capacity
 	 */
-	public int getPassengerCapacity() {
+	public synchronized int getPassengerCapacity() {
 		return passengerCapacity;
 	}
 
@@ -91,7 +91,7 @@ public class Flight {
 	 * returns the carrier
 	 * @return the carrier
 	 */
-	public String getCarrier() {
+	public synchronized String getCarrier() {
 		return carrier;
 	}
 
@@ -99,7 +99,7 @@ public class Flight {
 	 * returns the fee multiplier
 	 * @return the fee multiplier
 	 */
-	public float getFeeMultiplier(){
+	public synchronized float getFeeMultiplier(){
 		return feeMultiplier;
 	}
 	
@@ -109,7 +109,8 @@ public class Flight {
 	 * @param weight the weight of the baggage
 	 * @param fee any excess baggage fees incurred
 	 */
-	public void addPassengerAndBaggage(float vol, float weight,float fee) {
+	public synchronized void addPassengerAndBaggage
+		(float vol, float weight,float fee) {
 		//update weight and vol with this passenger's data
 		this.currentTotalBaggageWeight+=weight;
 		this.currentTotalBaggageVolume+=vol;
@@ -123,7 +124,7 @@ public class Flight {
 	 * Generates a summary of the Flight information as a String
 	 * @return the report String
 	 */
-	public String generateReport()
+	public synchronized String generateReport()
 	{
 		StringBuilder report = new StringBuilder();
 
@@ -147,7 +148,7 @@ public class Flight {
 	 * @param the object with which to compare
 	 * @return true if equal, false if unequal
 	 */
-	public boolean equals(Object obj)
+	public synchronized boolean equals(Object obj)
 	{
 		//two flights are equal if their flight codes are equal  (case-insensitive)
 		return (obj instanceof Flight) && (((Flight)obj).getFlightCode().toUpperCase().equals(this.getFlightCode().toUpperCase()));
@@ -158,7 +159,7 @@ public class Flight {
 	 * @param flight the with which to compare
 	 * @return the result of the String comparison
 	 */
-	public int compareTo(Flight flight)
+	public synchronized int compareTo(Flight flight)
 	{
 		//comparisons is done w.r.t. the flight code (case-insensitive)
 		return this.getFlightCode().toUpperCase().compareTo(flight.getFlightCode().toUpperCase());
