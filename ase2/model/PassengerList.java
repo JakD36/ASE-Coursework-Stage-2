@@ -85,7 +85,6 @@ public class PassengerList {
 					Boolean.parseBoolean(parts[4]))){ // Whether the passenger is already checked in
 						duplicates.add(parts[0]);
 				}
-				System.out.println("!!" + flights.get(parts[3]).getDestination());
 			}
 			
 			if(duplicates.size()>0){
