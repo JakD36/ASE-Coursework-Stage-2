@@ -16,7 +16,7 @@ public class Simulation {
 	
 	long startTime; 
 	long elapsedTime = 0;
-	long endTime = 2000;
+	long endTime = 15000;
 	long sleepTime = 1;
 
 	

@@ -14,6 +14,7 @@ public class CheckInHandler extends Thread{
 	private PassengerList passengers;
 	private FlightList flights;
 	
+	
 	/**
 	 * Constructor for the CheckInHandler.
 	 * Instantiates a {@link PassengerList} object, and populates the collections of passengers and flights
@@ -28,6 +29,12 @@ public class CheckInHandler extends Thread{
 
 	public void run(){
 		while(open){
+			long processTime = 5000;
+			try { 
+				Thread.sleep(processTime);
+			} catch (InterruptedException e) {
+				System.out.println("There was an issue trying to put the thread to sleep");
+			}
 			try{
 				Passenger nextPassenger = queue.removeNextPassenger();
 				if(checkDetails(nextPassenger.getBookingRefCode(), nextPassenger.getLastName())){
