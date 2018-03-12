@@ -1,11 +1,16 @@
 package ase2.model;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.util.LinkedList;
 
+import ase2.QueueHandler;
 import ase2.exceptions.IllegalReferenceCodeException;
+import java.util.NoSuchElementException;
 
-public class CheckInHandler {
+public class CheckInHandler extends Thread{
 	
+	public boolean open = true;
+	private QueueHandler queue;
 	private PassengerList passengers;
 	private FlightList flights;
 	
@@ -14,10 +19,38 @@ public class CheckInHandler {
 	 * Instantiates a {@link PassengerList} object, and populates the collections of passengers and flights
 	 * using the loadFlights and loadPassengers methods.
 	 */
-	public CheckInHandler() {
+	public CheckInHandler(QueueHandler queue) {
 		//get the instance of FlightList
 		flights = FlightList.getInstance();
 		passengers = PassengerList.getInstance();
+		this.queue = queue;
+	}
+
+	public void run(){
+		while(open){
+			try{
+				Passenger nextPassenger = queue.removeNextPassenger();
+				if(checkDetails(nextPassenger.getBookingRefCode(), nextPassenger.getLastName())){
+					float fee = processPassenger(nextPassenger.getBookingRefCode(), 
+					nextPassenger.getBaggageDimensions(), nextPassenger.getBaggageWeight());
+					
+					// TODO Log passenger Checked in successfully 
+					System.out.println(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged £"+fee);
+				}
+				else{
+					// TODO Log passenger Checked in failed
+					System.out.println(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in failed");
+				}
+				
+			}catch(NoSuchElementException e){
+				System.out.println("Theres no one in the queue to process!");
+			}
+			try { 
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				System.out.println("There was an issue trying to put the thread to sleep");
+			}
+		}
 	}
 	
 	/**
