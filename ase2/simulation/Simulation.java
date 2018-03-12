@@ -5,6 +5,8 @@ import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.Random;
 
+import com.sun.nio.sctp.Notification;
+
 import ase2.model.CheckInHandler;
 import ase2.model.Passenger;
 import ase2.model.PassengerList;
@@ -12,9 +14,14 @@ import ase2.QueueHandler;
 
 public class Simulation {
 	
-	long startTime; // Should this be a long unsigned ?
+	long startTime; 
 	long elapsedTime = 0;
-	long endTime = 15000;
+	long endTime = 2000;
+	long sleepTime = 1;
+
+	
+
+
 	int passengersAdded = 0;
 	// ArrayList<CheckInHandler> desks;
 	CheckInHandler desk;
@@ -64,7 +71,7 @@ public class Simulation {
 			
 			// Slow down our sim by a little bit, so we can see what happens and stuff
 			try { 
-				Thread.sleep(1);
+				Thread.sleep(sleepTime);
 			} catch (InterruptedException e) {
 				System.out.println("There was an issue trying to put the thread to sleep");
 			}
@@ -76,6 +83,7 @@ public class Simulation {
 				try{
 					Passenger passenger = getRandomToCheckIn();
 					queue.joinQueue(passenger);
+					
 					// TODO notify queue we have a passenger!
 					// TODO log passenger has arrived at airport
 					System.out.println("Adding " + passenger.getBookingRefCode() + " to Queue at time >> "+elapsedTime+ ", "+ ++passengersAdded + " added.");
@@ -89,6 +97,10 @@ public class Simulation {
 		// log simulation has ended
 		System.out.println("Simulation complete: " + passengersAdded + " added.");
 		desk.open = false;
+		// TODO unsure if this is correct way of doing things, will need to discuss
+		
+		queue.close();
+		desk.interrupt();
 		System.out.println(passengersNotQueued.size() + " did not join queue.");
 	}
 	

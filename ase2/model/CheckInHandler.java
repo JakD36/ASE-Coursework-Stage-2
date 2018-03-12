@@ -44,12 +44,7 @@ public class CheckInHandler extends Thread{
 				
 			}catch(NoSuchElementException e){
 				System.out.println("Theres no one in the queue to process!");
-			}
-			try { 
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				System.out.println("There was an issue trying to put the thread to sleep");
-			}
+			}	
 		}
 	}
 	
