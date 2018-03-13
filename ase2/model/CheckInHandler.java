@@ -1,24 +1,58 @@
-package ase1;
+package ase2.model;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.util.LinkedList;
 
-import ase1.data.Flight;
-import ase1.data.FlightList;
-import ase1.data.PassengerList;
+import ase2.QueueHandler;
+import ase2.exceptions.IllegalReferenceCodeException;
+import java.util.NoSuchElementException;
 
-public class CheckInHandler {
+public class CheckInHandler extends Thread{
 	
+	public boolean open = true;
+	private QueueHandler queue;
 	private PassengerList passengers;
 	private FlightList flights;
+	
 	
 	/**
 	 * Constructor for the CheckInHandler.
 	 * Instantiates a {@link PassengerList} object, and populates the collections of passengers and flights
 	 * using the loadFlights and loadPassengers methods.
 	 */
-	public CheckInHandler() {
-		flights = new FlightList();
-		passengers = new PassengerList(flights);
+	public CheckInHandler(QueueHandler queue) {
+		//get the instance of FlightList
+		flights = FlightList.getInstance();
+		passengers = PassengerList.getInstance();
+		this.queue = queue;
+	}
+
+	public void run(){
+		while(open){
+			long processTime = 5000;
+			try { 
+				Thread.sleep(processTime);
+			} catch (InterruptedException e) {
+				System.out.println("There was an issue trying to put the thread to sleep");
+			}
+			try{
+				Passenger nextPassenger = queue.removeNextPassenger();
+				if(checkDetails(nextPassenger.getBookingRefCode(), nextPassenger.getLastName())){
+					float fee = processPassenger(nextPassenger.getBookingRefCode(), 
+					nextPassenger.getBaggageDimensions(), nextPassenger.getBaggageWeight());
+					
+					// TODO Log passenger Checked in successfully 
+					System.out.println(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged £"+fee);
+				}
+				else{
+					// TODO Log passenger Checked in failed
+					System.out.println(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in failed");
+				}
+				
+			}catch(NoSuchElementException e){
+				System.out.println("Theres no one in the queue to process!");
+			}	
+		}
 	}
 	
 	/**
@@ -31,7 +65,7 @@ public class CheckInHandler {
 	 * @return	A boolean to show if the last name provided matches that of passenger with booking reference
 	 * @throws	IllegalReferenceCodeException	If the booking reference does match a passenger that is to be checked in or any passenger on the system.
 	 */
-	public boolean checkDetails(String bookingReference, String lastName) throws IllegalReferenceCodeException{
+	public synchronized boolean checkDetails(String bookingReference, String lastName) throws IllegalReferenceCodeException{
 		if( passengers.getNotCheckedIn().containsKey(bookingReference) ){	// Check that the booking reference provided matches, a passenger to be checked in
 			//Strings should compared with .equals in Java
 			if(passengers.getNotCheckedIn().get(bookingReference).getLastName().equals(lastName)){	// Checks if the passenger 
@@ -61,7 +95,7 @@ public class CheckInHandler {
 	 * @return 	The fee due from the passenger for any excesses on the baggage, -1 represents there was an error with check in
 	 * @throws	IllegalReferenceCodeException	If there is no passenger with a matching booking reference code.
 	 */
-	public float processPassenger(String bookingReference, float[] dimensions, float weight) throws IllegalReferenceCodeException{
+	public synchronized float processPassenger(String bookingReference, float[] dimensions, float weight) throws IllegalReferenceCodeException{
 		float fee;	// Fee due from passenger, calculated from the weight Fee, volume fee and the multiplier for the passengers flight
 		float weightFee = 0f, volFee = 0f;
 		float multiplier = 1f;
@@ -95,7 +129,7 @@ public class CheckInHandler {
 		fee = (weightFee+volFee)*multiplier;
 		
 		if(passengers.checkInPassenger(bookingReference)){ // Attempt to check in the passenger
-			flight.addPassengerAndBaggage(vol,weight,fee);	// If they are checked in add baggage, and incrememnt number of passengers
+			flight.addPassengerAndBaggage(vol,weight,fee);	// If they are checked in add baggage, and increment number of passengers
 		}
 		else{
 			// If for some reason the passenger cannot be checked in, we need to return an error
@@ -113,17 +147,17 @@ public class CheckInHandler {
 	 * 
 	 * @return The number of passengers still to be checked in.
 	 */
-	public int getNumToCheckIn() {
+	public synchronized int getNumToCheckIn() {
 		return passengers.getNumToCheckIn();
 	}
 	
 	/**
 	 * Takes the reports from each individual flight and compiles them into one output.
-	 * Loops through all the flights and gets their reports to be displayed by the gui.
+	 * Loops through all the flights and gets their reports to be displayed by the GUI.
 	 * 
-	 * @return The compilation of all the reports from all the flights. seperated by a two new lines
+	 * @return The compilation of all the reports from all the flights. separated by a two new lines
 	 */
-	public String generateReports() {
+	public synchronized String generateReports() {
 		// Follow this pattern
 		//		Flight code: #
 		//		Number of Passengers: #
@@ -146,7 +180,5 @@ public class CheckInHandler {
 		
 		//return for GUI
 		return finalReport;
-
-
 	}
 }

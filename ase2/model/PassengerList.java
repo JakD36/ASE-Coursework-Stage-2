@@ -1,5 +1,4 @@
-package ase1.data;
-
+package ase2.model;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -7,12 +6,38 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 
-import ase1.IllegalReferenceCodeException;
-
+import ase2.exceptions.IllegalReferenceCodeException;
 
 public class PassengerList {
 	private HashMap<String,Passenger> passengersCheckedIn;
 	private HashMap<String,Passenger> passengersNotCheckedIn;
+	
+	//the instance
+	private static PassengerList instance;
+	
+	/**
+	 * Returns the instance of PassengerList, or, if there is no
+	 * instance, instantiates one and returns it. The method
+	 * only blocks and enters the synchronized block if no
+	 * instance exists upon entry.
+	 * @return
+	 */
+	public static PassengerList getInstance() {
+		//check if there's an instance before entering the
+		//synchronized block
+		if (instance == null) {
+			//use class static lock
+			synchronized(PassengerList.class) {
+				//test must be performed again in case instance
+				//was created whilst the thread was waiting
+				if (instance == null) {
+					instance = new PassengerList();
+				}
+			}
+		}
+		return instance;
+	}
+	
 	
 	/**
 	 * Constructs a new PassengerList and invoke loadPassengers();
@@ -22,12 +47,12 @@ public class PassengerList {
 	 * 
 	 * @param flights
 	 */
-	public PassengerList(FlightList flights) throws IllegalReferenceCodeException  {
+	private PassengerList() throws IllegalReferenceCodeException  {
 		//instantiate HashMaps
 		passengersCheckedIn = new HashMap<String,Passenger>();
 		passengersNotCheckedIn =new  HashMap<String,Passenger>();
 		try{
-			loadPassengers(flights);
+			loadPassengers();
 		}catch(IllegalReferenceCodeException e){
 			System.out.println(e.getMessage());
 		}
@@ -38,9 +63,12 @@ public class PassengerList {
 	 * REQUIRES Load flights to already exist
 	 * Parses each line of the text file as a different passenger, and adds them to the collection of passengers.
 	 */
-	public void loadPassengers(FlightList flights) throws IllegalReferenceCodeException  {
+	public void loadPassengers() throws IllegalReferenceCodeException  {
 		File f = new File("passengers.txt");
 		Scanner scanner;
+		
+		//get the instance of FlightList
+		FlightList flights = FlightList.getInstance();
 		
 		try {
 			scanner = new Scanner(f);
@@ -56,8 +84,9 @@ public class PassengerList {
 					flights.get(parts[3])),	// Use flight code to link to the flight object
 					Boolean.parseBoolean(parts[4]))){ // Whether the passenger is already checked in
 						duplicates.add(parts[0]);
-					}
+				}
 			}
+			
 			if(duplicates.size()>0){
 				throw new IllegalReferenceCodeException("Duplicate ids were found in input:"+duplicates);
 			}
@@ -158,7 +187,7 @@ public class PassengerList {
 	
 	/**
 	 * Process the passenger as being checked in.
-	 * This moves them from the not checked in hash map to the checked in hashmap.
+	 * This moves them from the not checked in hash map to the checked in HashMap.
 	 * 
 	 * @param	bookingRefCode	The booking reference of the passenger to be checked in.
 	 * @return	A boolean to show if the passenger was moved successfully, returns false when there is no matching bookingRefCode, in the collection for passengers to be checked in.
@@ -172,7 +201,5 @@ public class PassengerList {
 		else{
 			return false;
 		}
-		
 	}
-	
 }
