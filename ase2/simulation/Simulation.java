@@ -1,5 +1,6 @@
 package ase2.simulation;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
@@ -11,16 +12,15 @@ import ase2.model.CheckInHandler;
 import ase2.model.Passenger;
 import ase2.model.PassengerList;
 import ase2.QueueHandler;
+import ase2.simulation.Clock;
 
 public class Simulation {
 	
-	long startTime; 
-	long elapsedTime = 0;
-	long endTime = 15000;
-	long sleepTime = 1;
-
+	long simSpeed = 1000; // Sim runs simSpeed times faster than real life!
+	long simEnd = 23;
+	long simEndTimems = simEnd*3600*1000;
 	
-
+	Clock simClock;
 
 	int passengersAdded = 0;
 	// ArrayList<CheckInHandler> desks;
@@ -49,7 +49,8 @@ public class Simulation {
 	public Simulation() {
 
 		// Set up our simulation
-		startTime = System.currentTimeMillis();
+		simClock = Clock.getInstance();
+		Logging log = Logging.getInstance();
 		Random rand = new Random(); // Create our random number generator 
 		// Collect passengers to be added into to system
 		passengersNotQueued = new ArrayList<Passenger>();
@@ -62,22 +63,24 @@ public class Simulation {
 		desk.start();
 		
 		// TODO Log start of sim
-		System.out.println("Simulation Instiated: " + startTime); 
+		// System.out.println("Simulation Instiated: " + simClock.getTimeString());
+		log.writeEvent("Simulation Instiated: " + simClock.getTimeString());
 		
 		
 		
 		// Update simulation		
-		while(elapsedTime < endTime) {
+		
+		while(simClock.getCurrentTime() < simEndTimems) {
 			
 			// Slow down our sim by a little bit, so we can see what happens and stuff
-			try { 
-				Thread.sleep(sleepTime);
-			} catch (InterruptedException e) {
-				System.out.println("There was an issue trying to put the thread to sleep");
-			}
+			// try { 
+			// 	Thread.sleep(1);
+			// } catch (InterruptedException e) {
+			// 	System.out.println("There was an issue trying to put the thread to sleep");
+			// }
 
-			elapsedTime =  System.currentTimeMillis() - startTime;
 			
+
 			// Randomly decide to if passenger arrives at airport
 			if(rand.nextInt(1000) < 500 && !allPassengersQueued) {
 				try{
@@ -86,7 +89,8 @@ public class Simulation {
 					
 					// TODO notify queue we have a passenger!
 					// TODO log passenger has arrived at airport
-					System.out.println("Adding " + passenger.getBookingRefCode() + " to Queue at time >> "+elapsedTime+ ", "+ ++passengersAdded + " added.");
+					// System.out.println("Adding " + passenger.getBookingRefCode() + " to Queue at time >> "+simClock.getTimeString()+ ", "+ ++passengersAdded + " added.");
+					log.writeEvent("Adding " + passenger.getBookingRefCode() + " to Queue at time >> "+simClock.getTimeString()+ ", "+ ++passengersAdded + " added.");
 				}
 				catch(NullPointerException e){
 					
@@ -94,14 +98,18 @@ public class Simulation {
 			}
 		}
 		
-		// log simulation has ended
-		System.out.println("Simulation complete: " + passengersAdded + " added.");
+		// TODO log simulation has ended
+		// System.out.println("Simulation complete: " + passengersAdded + " added.");
+		log.writeEvent("Simulation complete: " + passengersAdded + " added.");
 		desk.open = false;
 		// TODO unsure if this is correct way of doing things, will need to discuss
 		
 		queue.close();
 		desk.interrupt();
 		System.out.println(passengersNotQueued.size() + " did not join queue.");
+		try{
+			log.flush();
+		}catch(IOException e){}
 	}
 	
 	/**
@@ -127,13 +135,5 @@ public class Simulation {
 		return null;
 	}
 	
-	// /**
-	//  * Temporary method to empty queue and test that Passengers have
-	//  * been added correctly.
-	//  */
-	// public void popAndPrintQueue() {
-	// 	while(!queue.isEmpty()) {
-	// 		System.out.println("Popping: " + queue.remove().getBookingRefCode());
-	// 	}
-	// }
+	
 }

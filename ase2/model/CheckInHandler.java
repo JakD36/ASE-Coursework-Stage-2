@@ -6,6 +6,9 @@ import java.util.LinkedList;
 import ase2.QueueHandler;
 import ase2.exceptions.IllegalReferenceCodeException;
 import java.util.NoSuchElementException;
+import ase2.simulation.Clock;
+import ase2.simulation.Logging;
+
 
 public class CheckInHandler extends Thread{
 	
@@ -13,6 +16,8 @@ public class CheckInHandler extends Thread{
 	private QueueHandler queue;
 	private PassengerList passengers;
 	private FlightList flights;
+	long processTime = 5*60*1000; // time in ms
+	
 	
 	
 	/**
@@ -29,24 +34,33 @@ public class CheckInHandler extends Thread{
 
 	public void run(){
 		while(open){
-			long processTime = 5000;
+			
+			Clock simClock = Clock.getInstance();
+			Logging log = Logging.getInstance();
+			
+			
 			try { 
-				Thread.sleep(processTime);
+				long sleepTime = processTime/simClock.getSpeed();
+				Thread.sleep(sleepTime);
 			} catch (InterruptedException e) {
 				System.out.println("There was an issue trying to put the thread to sleep");
 			}
 			try{
 				Passenger nextPassenger = queue.removeNextPassenger();
+				
 				if(checkDetails(nextPassenger.getBookingRefCode(), nextPassenger.getLastName())){
 					float fee = processPassenger(nextPassenger.getBookingRefCode(), 
 					nextPassenger.getBaggageDimensions(), nextPassenger.getBaggageWeight());
 					
 					// TODO Log passenger Checked in successfully 
-					System.out.println(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged £"+fee);
+					// System.out.println(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged £"+fee+" at time "+simClock.getTimeString());
+					log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged £"+fee+" at time "+simClock.getTimeString());
+
 				}
 				else{
 					// TODO Log passenger Checked in failed
-					System.out.println(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in failed");
+					// System.out.println(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in failed at time" + simClock.getTimeString());
+					log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in failed at time" + simClock.getTimeString());
 				}
 				
 			}catch(NoSuchElementException e){
