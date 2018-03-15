@@ -6,7 +6,7 @@ public class Clock
     long lastTime; // Time at last call
     long lastSimTime;
     long startSimTime = 6*3600*1000; // Start the simulation at 6 am
-    long speed = 10000;
+    long speed = 100000;
 
 
     //Static variable keeping the singleton instance of the class

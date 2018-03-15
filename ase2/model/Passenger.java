@@ -80,4 +80,13 @@ public class Passenger {
 	{
 		return this.getBookingRefCode().toUpperCase().compareTo(passenger.getBookingRefCode().toUpperCase());
 	}
+
+	public synchronized void setBaggageDimensions(float[] baggageDimensions){
+		this.baggageDimensions = baggageDimensions;
+	}
+
+	public synchronized void setBaggageWeight(float baggageWeight){
+		this.baggageWeight = baggageWeight;
+	}
+
 }
