@@ -2,6 +2,7 @@ package ase2.simulation;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.Random;
@@ -9,12 +10,16 @@ import java.util.Random;
 import com.sun.nio.sctp.Notification;
 
 import ase2.model.CheckInHandler;
+import ase2.model.Flight;
+import ase2.model.FlightList;
 import ase2.model.Passenger;
 import ase2.model.PassengerList;
 import ase2.QueueHandler;
+import ase2.interfaces.Observer;
+import ase2.interfaces.Subject;
 import ase2.simulation.Clock;
 
-public class Simulation {
+public class Simulation implements Subject {
 	
 	long simSpeed = 1000; // Sim runs simSpeed times faster than real life!
 	long simEnd = 23;
@@ -23,11 +28,13 @@ public class Simulation {
 	Clock simClock;
 
 	int passengersAdded = 0;
-	// ArrayList<CheckInHandler> desks;
-	CheckInHandler desk;
+	ArrayList<CheckInHandler> desks;
+	//CheckInHandler desk;
 	boolean allPassengersQueued = false;
 	PassengerList passengers = PassengerList.getInstance(); // Think this makes it basically a global, defeating the purpose of the singleton
 	ArrayList<Passenger> passengersNotQueued;
+	
+	ArrayList<Observer> simObservers;
 	
 	
 	//Collections handout states, "please don’t use any of the Queue
@@ -57,13 +64,20 @@ public class Simulation {
 		for(Passenger p : passengers.getNotCheckedIn().values()) {
 			passengersNotQueued.add(p);
 		}
-
-		queue = new QueueHandler();
-		desk = new CheckInHandler(queue);
-		desk.start();
 		
-		// TODO Log start of sim
-		// System.out.println("Simulation Instiated: " + simClock.getTimeString());
+		//create new lists to accommodate for observers and checkin desks
+		simObservers = new ArrayList<Observer>();
+		desks = new ArrayList<CheckInHandler>();
+		
+		//create new desks 
+		queue = new QueueHandler();
+		desks.add(new CheckInHandler(queue)); //copy this to add more checkin desks
+		
+		for (CheckInHandler desk : desks) {
+			desk.start(); //start all the checkin threads
+		}
+		
+
 		log.writeEvent("Simulation Instiated: " + simClock.getTimeString());
 		
 		
@@ -82,14 +96,13 @@ public class Simulation {
 			
 
 			// Randomly decide to if passenger arrives at airport
-			if(rand.nextInt(1000) < 500 && !allPassengersQueued) {
+			if( (rand.nextDouble() < 0.5d) && !allPassengersQueued) {
 				try{
 					Passenger passenger = getRandomToCheckIn();
 					queue.joinQueue(passenger);
 					
-					// TODO notify queue we have a passenger!
-					// TODO log passenger has arrived at airport
-					// System.out.println("Adding " + passenger.getBookingRefCode() + " to Queue at time >> "+simClock.getTimeString()+ ", "+ ++passengersAdded + " added.");
+					//TODO: add setters for baggage in Passenger Class
+				
 					log.writeEvent("Adding " + passenger.getBookingRefCode() + " to Queue at time >> "+simClock.getTimeString()+ ", "+ ++passengersAdded + " added.");
 				}
 				catch(NullPointerException e){
@@ -101,11 +114,13 @@ public class Simulation {
 		// TODO log simulation has ended
 		// System.out.println("Simulation complete: " + passengersAdded + " added.");
 		log.writeEvent("Simulation complete: " + passengersAdded + " added.");
-		desk.open = false;
+		
+		for(CheckInHandler desk : desks) {
+			desk.open = false; //this line will terminate all the threads "nicely"
+		}
 		// TODO unsure if this is correct way of doing things, will need to discuss
 		
 		queue.close();
-		desk.interrupt();
 		System.out.println(passengersNotQueued.size() + " did not join queue.");
 		try{
 			log.flush();
@@ -133,6 +148,59 @@ public class Simulation {
 			return (passenger);
 		}
 		return null;
+	}
+
+	@Override
+	public void registerObserver(Observer obs) {
+		this.simObservers.add(obs);
+		
+	}
+
+	@Override
+	public void removeObserver(Observer obs) {
+		this.simObservers.remove(obs);
+		
+	}
+
+	@Override
+	public void notifyObservers() {
+		for (Observer obs : this.simObservers)
+		{
+			obs.update();
+		}
+	}
+
+	@Override
+	public Passenger[] getPassengersNotQueuedList() {
+		Passenger[] passengers = new Passenger[this.passengersNotQueued.size()];
+		this.passengersNotQueued.toArray(passengers);
+		
+		return passengers;
+	}
+
+	@Override
+	public Passenger[]  getQueuedPassengersList() {
+		//TODO: get method in QueueHandler needed!
+		
+		return null;
+	}
+
+	@Override
+	public CheckInHandler[] getCheckInDesks() {
+		CheckInHandler[] desks = new CheckInHandler[this.desks.size()];
+		this.desks.toArray(desks);
+		
+		return desks;
+	}
+
+	@Override
+	public Flight[] getFlights() {
+		Collection<Flight> flights = FlightList.getInstance().getValues();
+		Flight[] f = new Flight[flights.size()];
+		
+		flights.toArray(f);
+		
+		return f;
 	}
 	
 	

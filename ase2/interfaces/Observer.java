@@ -7,5 +7,6 @@ package ase2.interfaces;
  * Observers may subscribe to Subjects for update.
  */
 public interface Observer {
+	//TODO: add (at least) Subject params
 	public void update();
 }
