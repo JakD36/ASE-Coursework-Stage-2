@@ -65,7 +65,7 @@ public class Logging
 			
 			File logFile = new File(Logging.FILENAME);
 	
-			BufferedWriter writer = new BufferedWriter(new FileWriter(logFile,true));
+			BufferedWriter writer = new BufferedWriter(new FileWriter(logFile));
 		    writer.write(event_str.toString());
 		    writer.close();
 		    
@@ -78,11 +78,17 @@ public class Logging
 	/*
 	 * Returns the Singleton instance of the Logging class
 	 */
-	synchronized static public Logging getInstance()
+    static public Logging getInstance()
 	{
 		if (Logging.instance == null)
 		{
-			Logging.instance = new Logging();
+            synchronized(Logging.class)
+            {
+                if (Logging.instance == null)
+                {
+                    Logging.instance = new Logging();
+                }
+            }
 		}
 		
 		return Logging.instance;
