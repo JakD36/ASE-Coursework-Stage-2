@@ -1,24 +1,28 @@
 package ase2.model;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.util.LinkedList;
 
 import ase2.QueueHandler;
 import ase2.exceptions.IllegalReferenceCodeException;
+import ase2.interfaces.Observer;
+import ase2.interfaces.Subject;
+
+import java.util.ArrayList;
 import java.util.NoSuchElementException;
 import ase2.simulation.Clock;
 import ase2.simulation.Logging;
 
 
-public class CheckInHandler extends Thread{
+public class CheckInHandler extends Thread implements Subject {
 	
 	public boolean open = true;
 	private QueueHandler queue;
 	private PassengerList passengers;
 	private FlightList flights;
 	long processTime = 5*60*1000; // time in ms
+	String status = "started";
 	
-	
+	ArrayList<Observer> observers = new ArrayList<Observer>();
 	
 	/**
 	 * Constructor for the CheckInHandler.
@@ -33,7 +37,8 @@ public class CheckInHandler extends Thread{
 	}
 
 	public void run(){
-		while(open){
+		//tweaked so GUI can update that the desk is closed
+		while(open && PassengerList.getInstance().getNotCheckedIn().size() > 0){
 			
 			Clock simClock = Clock.getInstance();
 			Logging log = Logging.getInstance();
@@ -53,9 +58,9 @@ public class CheckInHandler extends Thread{
 					nextPassenger.getBaggageDimensions(), nextPassenger.getBaggageWeight());
 					
 					// TODO Log passenger Checked in successfully 
-					// System.out.println(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged Â£"+fee+" at time "+simClock.getTimeString());
-					log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged Â£"+fee+" at time "+simClock.getTimeString());
-
+					// System.out.println(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged £"+fee+" at time "+simClock.getTimeString());
+					log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged £"+fee+" at time "+simClock.getTimeString());
+					System.out.println(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged £"+fee+" at time "+simClock.getTimeString());
 				}
 				else{
 					// TODO Log passenger Checked in failed
@@ -67,6 +72,8 @@ public class CheckInHandler extends Thread{
 				System.out.println("Theres no one in the queue to process!");
 			}	
 		}
+		setStatus("closed");
+		notifyObservers();
 	}
 	
 	/**
@@ -80,6 +87,9 @@ public class CheckInHandler extends Thread{
 	 * @throws	IllegalReferenceCodeException	If the booking reference does match a passenger that is to be checked in or any passenger on the system.
 	 */
 	public synchronized boolean checkDetails(String bookingReference, String lastName) throws IllegalReferenceCodeException{
+		setStatus("checking details");
+		notifyObservers();
+		
 		if( passengers.getNotCheckedIn().containsKey(bookingReference) ){	// Check that the booking reference provided matches, a passenger to be checked in
 			//Strings should compared with .equals in Java
 			if(passengers.getNotCheckedIn().get(bookingReference).getLastName().equals(lastName)){	// Checks if the passenger 
@@ -110,6 +120,9 @@ public class CheckInHandler extends Thread{
 	 * @throws	IllegalReferenceCodeException	If there is no passenger with a matching booking reference code.
 	 */
 	public synchronized float processPassenger(String bookingReference, float[] dimensions, float weight) throws IllegalReferenceCodeException{
+		setStatus("processing passenger " + bookingReference);
+		notifyObservers();
+		
 		float fee;	// Fee due from passenger, calculated from the weight Fee, volume fee and the multiplier for the passengers flight
 		float weightFee = 0f, volFee = 0f;
 		float multiplier = 1f;
@@ -194,5 +207,40 @@ public class CheckInHandler extends Thread{
 		
 		//return for GUI
 		return finalReport;
+	}
+	
+	@Override
+	/**
+	 * add an Observer to this object
+	 */
+	public void registerObserver(Observer obs) {
+		this.observers.add(obs);
+	}
+
+	/**
+	 * remove an Observer from this object
+	 */
+	@Override
+	public void removeObserver(Observer obs) {
+		this.observers.remove(obs);	
+	}
+
+	/**
+	 * notify all Observers of an update
+	 */
+	@Override
+	public void notifyObservers() {
+		for (Observer obs : this.observers)
+		{
+			obs.update();
+		}
+	}
+	
+	public synchronized String getStatus() {
+		return status;
+	}
+	
+	public synchronized void setStatus(String status) {
+		this.status = status;
 	}
 }

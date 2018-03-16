@@ -3,11 +3,7 @@ package ase2.simulation;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
-import java.util.NoSuchElementException;
 import java.util.Random;
-
-import com.sun.nio.sctp.Notification;
 
 import ase2.model.CheckInHandler;
 import ase2.model.Flight;
@@ -18,6 +14,7 @@ import ase2.QueueHandler;
 import ase2.interfaces.Observer;
 import ase2.interfaces.Subject;
 import ase2.simulation.Clock;
+import ase2.views.GUI;
 
 public class Simulation implements Subject {
 	
@@ -37,7 +34,7 @@ public class Simulation implements Subject {
 	ArrayList<Observer> simObservers;
 	
 	
-	//Collections handout states, "please don’t use any of the Queue
+	//Collections handout states, "please don't use any of the Queue
 	//implementations which handle concurrent access in the coursework, such as
 	//ConcurrentLinkedQueue, since this would not help you to understand 
 	//the basic principles and problems of using threads."
@@ -77,6 +74,9 @@ public class Simulation implements Subject {
 			desk.start(); //start all the checkin threads
 		}
 		
+		//create GUI
+		new GUI(this);
+		
 
 		log.writeEvent("Simulation Instiated: " + simClock.getTimeString());
 		
@@ -86,17 +86,17 @@ public class Simulation implements Subject {
 		
 		while(simClock.getCurrentTime() < simEndTimems) {
 			
-			// Slow down our sim by a little bit, so we can see what happens and stuff
-			// try { 
-			// 	Thread.sleep(1);
-			// } catch (InterruptedException e) {
-			// 	System.out.println("There was an issue trying to put the thread to sleep");
-			// }
+			//== Slow down our sim by a little bit, so we can see what happens and stuff
+			try { 
+				Thread.sleep(6*3600*1/simClock.getSpeed());
+			} catch (InterruptedException e) {
+			 	System.out.println("There was an issue trying to put the thread to sleep");
+			}
 
 			
 
 			// Randomly decide to if passenger arrives at airport
-			if( (rand.nextDouble() < 0.5d) && !allPassengersQueued) {
+			if( (rand.nextDouble() < 0.25d) && !allPassengersQueued) {
 				try{
 					Passenger passenger = getRandomToCheckIn();
 					queue.joinQueue(passenger);
@@ -170,7 +170,6 @@ public class Simulation implements Subject {
 		}
 	}
 
-	@Override
 	public Passenger[] getPassengersNotQueuedList() {
 		Passenger[] passengers = new Passenger[this.passengersNotQueued.size()];
 		this.passengersNotQueued.toArray(passengers);
@@ -178,14 +177,12 @@ public class Simulation implements Subject {
 		return passengers;
 	}
 
-	@Override
 	public Passenger[]  getQueuedPassengersList() {
 		//TODO: get method in QueueHandler needed!
 		
 		return null;
 	}
 
-	@Override
 	public CheckInHandler[] getCheckInDesks() {
 		CheckInHandler[] desks = new CheckInHandler[this.desks.size()];
 		this.desks.toArray(desks);
@@ -193,7 +190,6 @@ public class Simulation implements Subject {
 		return desks;
 	}
 
-	@Override
 	public Flight[] getFlights() {
 		Collection<Flight> flights = FlightList.getInstance().getValues();
 		Flight[] f = new Flight[flights.size()];
@@ -203,5 +199,12 @@ public class Simulation implements Subject {
 		return f;
 	}
 	
-	
+
+	/**
+	 * return the the queue
+	 * @return the current queue
+	 */
+	public QueueHandler getQueueHandler() {
+		return queue;
+	}
 }

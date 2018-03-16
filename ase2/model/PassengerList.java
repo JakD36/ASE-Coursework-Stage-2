@@ -76,12 +76,15 @@ public class PassengerList {
 			while (scanner.hasNextLine()) {     
 				String inputLine = scanner.nextLine();   
 				String parts[] = inputLine.split(",");
+				
+				Flight flight = flights.get(parts[3]);// Use flight code to link to the flight object
+				flight.incrementPassengersBookedAboard();
 
 				if(!this.add(new Passenger(
 					parts[0], // Booking reference code
 					parts[1], // First name
 					parts[2], // Last name
-					flights.get(parts[3])),	// Use flight code to link to the flight object
+					flight),	
 					Boolean.parseBoolean(parts[4]))){ // Whether the passenger is already checked in
 						duplicates.add(parts[0]);
 				}
