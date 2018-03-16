@@ -1,5 +1,11 @@
 package ase2.model;
-public class Flight {
+
+import java.util.ArrayList;
+
+import ase2.interfaces.Observer;
+import ase2.interfaces.Subject;
+
+public class Flight implements Subject {
 	//flight description
 	private String flightCode;
 	private String destination;
@@ -15,9 +21,13 @@ public class Flight {
 	private float currentTotalBaggageVolume;
 	private float currentTotalBaggageWeight;
 	private float currentTotalFees;
+	private int passengersBookedAboard = 0;
 	
 	//total limits in the aircraft
 	private int passengerCapacity; 
+	
+	//the Observers
+	ArrayList<Observer> observers = new ArrayList<Observer>();
 	
 	/**
 	 * Constructs a Flight object
@@ -118,6 +128,9 @@ public class Flight {
 		
 		//add a passenger to the current count
 		this.currentTotalPassengers++;
+		
+		//notify all observers
+		notifyObservers();
 	}
 	
 	/**
@@ -163,5 +176,53 @@ public class Flight {
 	{
 		//comparisons is done w.r.t. the flight code (case-insensitive)
 		return this.getFlightCode().toUpperCase().compareTo(flight.getFlightCode().toUpperCase());
+	}
+
+	 
+	public int getTotalPassengersCheckedIn() {
+		return currentTotalPassengers;
+	}
+	
+	public float getTotalBaggageWeight() {
+		return currentTotalBaggageWeight;
+	}
+	
+	public float getTotalBaggageVolume() {
+		return currentTotalBaggageVolume;
+	}
+	
+	public int getPassengersBookedAboard() {
+		return passengersBookedAboard;
+	}
+
+	public void incrementPassengersBookedAboard() {
+		passengersBookedAboard++;;
+	}
+
+	@Override
+	/**
+	 * add an Observer to this object
+	 */
+	public void registerObserver(Observer obs) {
+		this.observers.add(obs);
+	}
+
+	/**
+	 * remove an Observer from this object
+	 */
+	@Override
+	public void removeObserver(Observer obs) {
+		this.observers.remove(obs);	
+	}
+
+	/**
+	 * notify all Observers of an update
+	 */
+	@Override
+	public void notifyObservers() {
+		for (Observer obs : this.observers)
+		{
+			obs.update();
+		}
 	}
 }
