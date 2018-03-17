@@ -28,7 +28,9 @@ public class Controller{
     // inner class SetListener responds when user sets time
     public class StartListener implements ActionListener{
         public void actionPerformed(ActionEvent e){
-            model.start(); // TODO handle trying to start the thread when its already started! 
+            if(!model.isAlive()){
+                model.start(); 
+            }
         }
     }
 }

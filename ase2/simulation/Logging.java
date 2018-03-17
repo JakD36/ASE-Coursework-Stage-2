@@ -13,6 +13,8 @@ public class Logging
 	
 	//Events counter
 	private int counter = 1;
+
+	private boolean debug = false;
 	
 	//Constant keeping the filename for the log file
 	static private final String FILENAME = "logging.txt";
@@ -37,7 +39,14 @@ public class Logging
 		synchronized(this.events) {
 			events.add(String.format("Event #%d: %s"+ System.lineSeparator() , this.counter,event));
 			this.counter++;
+			if(debug){
+				System.out.println(String.format("Event #%d: %s"+ System.lineSeparator() , this.counter,event));
+			}
 		}
+	}
+
+	public void enableDebug(){
+		debug = true;
 	}
 	
 	/*

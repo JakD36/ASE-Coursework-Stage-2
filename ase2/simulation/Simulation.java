@@ -20,42 +20,35 @@ import ase2.simulation.Logging;
 
 public class Simulation extends Thread implements Subject {
 	
-	long simSpeed = 1000; // Sim runs simSpeed times faster than real life!
-	long simEnd = 23;
-	long simEndTimems = simEnd*3600*1000;
+	long simEndTime = 0; // When the simulation will end!
 	
-	Clock simClock;
-
-	int passengersAdded = 0;
 	ArrayList<CheckInHandler> desks;
-	//CheckInHandler desk;
+	int passengersAdded = 0;
 	boolean allPassengersQueued = false;
-	PassengerList passengers = PassengerList.getInstance(); // Think this makes it basically a global, defeating the purpose of the singleton
 	ArrayList<Passenger> passengersNotQueued;
+	QueueHandler queue;
+	int totalPassengers;
+	
 	
 	ArrayList<Observer> simObservers;
 	
-	
-	QueueHandler queue;
-	
+	/**
+	 * Starts the program by initialising components of MVC pattern, gui, simulation and the controller
+	 */
 	public static void main(String[] args) {
 		Simulation model = new Simulation();
 		GUI view = new GUI(model);
 		Controller controller = new Controller(view,model);
 	}
 	
-	/**
-	 * Currently runs for a set period of time. Eventually this should be
-	 * changed to close when all desks close or all passengers are checked in
-	 */
 	public Simulation() {
-
-		
 		// Collect passengers to be added into to system
+		PassengerList passengers = PassengerList.getInstance(); 
 		passengersNotQueued = new ArrayList<Passenger>();
 		for(Passenger p : passengers.getNotCheckedIn().values()) {
 			passengersNotQueued.add(p);
 		}
+		totalPassengers = passengersNotQueued.size();
 		
 		//create new lists to accommodate for observers and checkin desks
 		simObservers = new ArrayList<Observer>();
@@ -64,61 +57,71 @@ public class Simulation extends Thread implements Subject {
 		//create new desks 
 		queue = new QueueHandler();
 		desks.add(new CheckInHandler(queue)); //copy this to add more checkin desks
+		desks.add(new CheckInHandler(queue)); //copy this to add more checkin desks
 	}
 
 	public synchronized void run(){
-		simClock = Clock.getInstance();
+		
+		// Get the clock and start the clock!
+		Clock simClock = Clock.getInstance();
 		simClock.startClock();
+		
+		// Get our log 
 		Logging log = Logging.getInstance();
 		log.writeEvent("Simulation Instiated: " + simClock.getTimeString());
-		// Set up our simulation
+		// log.enableDebug();
 		
 		Random rand = new Random(); // Create our random number generator 
+		
+		// Start each of the check in desk threads
 		for (CheckInHandler desk : desks) {
-			desk.start(); //start all the checkin threads
+			desk.start(); 
+			long closeTime = desk.getClosureTime();
+			if(closeTime > simEndTime){
+				simEndTime = closeTime;
+			}
 		}
-		
-		
-		// Update simulation		
-		
-		while(simClock.getCurrentTime() < simEndTimems) {
+
+		// TODO not happy with this to be honest it ends up in busy waiting 
+		// add passengers to the system!
+		while(simClock.getCurrentTime() < simEndTime) {
 			
-			//== Slow down our sim by a little bit, so we can see what happens and stuff
+			// Randomly decide if passengers arrive at airport	
+			long AverageTimeBetweenArrival = 2*60*1000; // 2 min on average between arrivals
 			try { 
-				Thread.sleep(6*3600*1/simClock.getSpeed());
+				long sleepTime = AverageTimeBetweenArrival/simClock.getSpeed();
+				Thread.sleep(sleepTime);
 			} catch (InterruptedException e) {
-			 	System.out.println("There was an issue trying to put the thread to sleep");
+				System.out.println("Simulation was interupted from sleep");
 			}
 
+			double chanceOfArriving = 0.5d/(double)totalPassengers;
 			
+			for(int n = 0;n < passengersNotQueued.size(); n++){
+				if( (rand.nextDouble() < chanceOfArriving) ) {
+					try{
+						Passenger passenger = getRandomToCheckIn();
 
-			// Randomly decide to if passenger arrives at airport
-			if( (rand.nextDouble() < 0.25d) && !allPassengersQueued) {
-				try{
-					Passenger passenger = getRandomToCheckIn();
-					queue.joinQueue(passenger);
+						queue.joinQueue(passenger);
 					
-					//TODO: add setters for baggage in Passenger Class
-				
-					log.writeEvent("Adding " + passenger.getBookingRefCode() + " to Queue at time >> "+simClock.getTimeString()+ ", "+ ++passengersAdded + " added.");
-				}
-				catch(NullPointerException e){
-					
+						log.writeEvent("Adding " + passenger.getBookingRefCode() + " to Queue at time >> "+simClock.getTimeString()+ ", "+ ++passengersAdded + " added.");
+					}
+					catch(NullPointerException e){
+						
+					}
 				}
 			}
 		}
 		
-		// TODO log simulation has ended
-		// System.out.println("Simulation complete: " + passengersAdded + " added.");
 		log.writeEvent("Simulation complete: " + passengersAdded + " added.");
 		
 		for(CheckInHandler desk : desks) {
 			desk.open = false; //this line will terminate all the threads "nicely"
+			desk.interrupt();
 		}
-		// TODO unsure if this is correct way of doing things, will need to discuss
+		
 		
 		queue.close();
-		System.out.println(passengersNotQueued.size() + " did not join queue.");
 		try{
 			log.flush();
 		}catch(IOException e){}
@@ -132,7 +135,6 @@ public class Simulation extends Thread implements Subject {
 	 */
 	public Passenger getRandomToCheckIn() {
 		int passengersLeft = passengersNotQueued.size();
-		System.out.println("Passengers left to enter system "+passengersLeft);
 		if(passengersLeft > 0) {
 			Random rand = new Random();
 			int randInt = rand.nextInt(passengersLeft);
@@ -175,7 +177,7 @@ public class Simulation extends Thread implements Subject {
 	}
 
 	public Passenger[]  getQueuedPassengersList() {
-		//TODO: get method in QueueHandler needed!
+		//TODO: get method in QueueHandler needed! Add it then!
 		
 		return null;
 	}
