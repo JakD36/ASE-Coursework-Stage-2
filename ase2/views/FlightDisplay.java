@@ -40,7 +40,7 @@ public class FlightDisplay extends JPanel
 	@Override
 	public void update() {
 		// TODO Loop get flight details and put them in the editor pane
-		System.out.println("updating flight");
+		// System.out.println("updating flight");
 		
 		data.setText("<html><p align = 'center'>" + name + "<br/>"
 				+ flight.getTotalPassengersCheckedIn() + " checked in of "

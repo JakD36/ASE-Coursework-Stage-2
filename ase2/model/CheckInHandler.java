@@ -19,9 +19,10 @@ public class CheckInHandler extends Thread implements Subject {
 	private QueueHandler queue;
 	private PassengerList passengers;
 	private FlightList flights;
-	long processTime = 20*60*1000; // time in ms to 5 minutes
+	long processTime = 10*60*1000; // time in ms to 5 minutes
 	String status = "started";
-	long ClosureTime = 18*3600*1000;
+	long ClosureTime = 12*3600*1000;
+	Clock simClock;
 
 
 	ArrayList<Observer> observers = new ArrayList<Observer>();
@@ -36,43 +37,54 @@ public class CheckInHandler extends Thread implements Subject {
 		flights = FlightList.getInstance();
 		passengers = PassengerList.getInstance();
 		this.queue = queue;
+		simClock = Clock.getInstance();
 	}
-
+	public synchronized long getClosureTime(){
+		return ClosureTime;
+	}
 	public void run(){
 		//tweaked so GUI can update that the desk is closed
-		while(open && PassengerList.getInstance().getNotCheckedIn().size() > 0){
+		while(simClock.getCurrentTime()<ClosureTime){// && PassengerList.getInstance().getNotCheckedIn().size() > 0){
 			
-			Clock simClock = Clock.getInstance();
+			
 			Logging log = Logging.getInstance();
 			
 			
-			try { 
-				long sleepTime = processTime/simClock.getSpeed();
-				Thread.sleep(sleepTime);
-			} catch (InterruptedException e) {
-				System.out.println("Desk was interupted from processing passenger");
-			}
 			try{
 				Passenger nextPassenger = queue.removeNextPassenger();
-				
+
 				if(checkDetails(nextPassenger.getBookingRefCode(), nextPassenger.getLastName())){
+					
 					float fee = processPassenger(nextPassenger.getBookingRefCode(), 
 					nextPassenger.getBaggageDimensions(), nextPassenger.getBaggageWeight());
 
-					log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged �"+fee+" at time "+simClock.getTimeString());
+					log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged £"+fee+" at time "+simClock.getTimeString());
+					setStatus("checked in successfully and is charged £"+fee);				
+					
+					notifyObservers();
+					// Put the thread to sleep for a third of the process time to display they are checked in
+					try { 
+						long sleepTime = (processTime/3)/simClock.getSpeed();
+						Thread.sleep(sleepTime);
+					} catch (InterruptedException i) {
+						System.out.println("Desk was interupted from displaying fee");
+					}
+					
 				}
 				else{
-					
 					log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in failed at time" + simClock.getTimeString());
+					setStatus(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in failed");
 				}
 				
 			}catch(NoSuchElementException e){
+				setStatus("Theres no one in the queue to process!");
+				notifyObservers();
 				System.out.println("Theres no one in the queue to process!");
 			}
-			if(simClock.getCurrentTime()>ClosureTime){
-				open = false;
-			}	
+			// setStatus("Waiting for next customer!");
+			// notifyObservers();
 		}
+		System.out.println("WHY!!!!");
 		setStatus("closed");
 		notifyObservers();
 	}
@@ -88,9 +100,18 @@ public class CheckInHandler extends Thread implements Subject {
 	 * @throws	IllegalReferenceCodeException	If the booking reference does match a passenger that is to be checked in or any passenger on the system.
 	 */
 	public synchronized boolean checkDetails(String bookingReference, String lastName) throws IllegalReferenceCodeException{
-		setStatus("checking details");
+		setStatus("checking details of " + bookingReference);
 		notifyObservers();
-		
+		Clock simClock = Clock.getInstance();
+		// put the desk to sleep to take into account hte time to process passenger
+		try { 
+			long sleepTime = (processTime/3)/simClock.getSpeed();
+			Thread.sleep(sleepTime);
+			
+		} catch (InterruptedException e) {
+			System.out.println("Desk was interupted from processing passenger");
+		}
+
 		if( passengers.getNotCheckedIn().containsKey(bookingReference) ){	// Check that the booking reference provided matches, a passenger to be checked in
 			//Strings should compared with .equals in Java
 			if(passengers.getNotCheckedIn().get(bookingReference).getLastName().equals(lastName)){	// Checks if the passenger 
@@ -101,10 +122,16 @@ public class CheckInHandler extends Thread implements Subject {
 			}
 		}
 		else if(passengers.getCheckedIn().containsKey(bookingReference)){ // Throw an exception if the matching passenger is already checked in
+			setStatus(bookingReference + "Is already checked in!");
+			notifyObservers();
 			throw new IllegalReferenceCodeException(bookingReference+": Is already checked in.");
+			
 		}
 		else{ // Throw an exception if there is no passenger that matches this booking reference code
+			setStatus(bookingReference+": There is no booking reference on record.");
+			notifyObservers();
 			throw new IllegalReferenceCodeException(bookingReference+": There is no booking reference on record.");
+			
 		}
 		
 	}
@@ -123,6 +150,15 @@ public class CheckInHandler extends Thread implements Subject {
 	public synchronized float processPassenger(String bookingReference, float[] dimensions, float weight) throws IllegalReferenceCodeException{
 		setStatus("processing passenger " + bookingReference);
 		notifyObservers();
+		Clock simClock = Clock.getInstance();
+		// put the desk to sleep to take into account hte time to process passenger
+		
+		try { 
+			long sleepTime = (processTime/3)/simClock.getSpeed();
+			Thread.sleep(sleepTime);
+		} catch (InterruptedException e) {
+			System.out.println("Desk was interupted from processing passenger");
+		}
 		
 		float fee;	// Fee due from passenger, calculated from the weight Fee, volume fee and the multiplier for the passengers flight
 		float weightFee = 0f, volFee = 0f;
@@ -161,11 +197,15 @@ public class CheckInHandler extends Thread implements Subject {
 		}
 		else{
 			// If for some reason the passenger cannot be checked in, we need to return an error
+			setStatus("There is no passenger with this booking reference to be checked in,\n they may be already checked in: "+bookingReference);
+			notifyObservers();
 			throw new IllegalReferenceCodeException
 			("There is no passenger with this booking reference to be checked in,\n they may be already checked in: "+bookingReference);
+			
 		}
 
 		// Output the final fee due from the passenger,
+		
 		return fee;
 	}
 	
@@ -242,6 +282,7 @@ public class CheckInHandler extends Thread implements Subject {
 	}
 	
 	public synchronized void setStatus(String status) {
+		
 		this.status = status;
 	}
 }

@@ -6,7 +6,7 @@ public class Clock
     long lastRealTime; // Time at last call
     long lastSimTime;
     long startSimTime = 6*3600*1000; // Start the simulation at 6 am
-    long speed = 1000;
+    long speed = 5000;
     boolean started = false;
 
     //Static variable keeping the singleton instance of the class
@@ -62,6 +62,11 @@ public class Clock
         // So now when we change the speed below its only applied for the future!
         this.speed = speed;
     }
+
+    public synchronized long getStartTime(){
+        return startSimTime;
+    }
+
 	/*
 	 * 
 	 */

@@ -156,7 +156,7 @@ public class GUI extends JFrame
 		c.gridx = 3;
 		c.gridy = 4;
 		c.fill = GridBagConstraints.BOTH;
-		dd = new DeskDisplay(desks[0], 1);
+		dd = new DeskDisplay(desks[1], 2);
 		panel.add(dd, c);
 		sim.registerObserver(dd);
 		
