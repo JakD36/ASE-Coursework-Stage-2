@@ -19,9 +19,11 @@ public class CheckInHandler extends Thread implements Subject {
 	private QueueHandler queue;
 	private PassengerList passengers;
 	private FlightList flights;
-	long processTime = 5*60*1000; // time in ms
+	long processTime = 20*60*1000; // time in ms to 5 minutes
 	String status = "started";
-	
+	long ClosureTime = 18*3600*1000;
+
+
 	ArrayList<Observer> observers = new ArrayList<Observer>();
 	
 	/**
@@ -48,7 +50,7 @@ public class CheckInHandler extends Thread implements Subject {
 				long sleepTime = processTime/simClock.getSpeed();
 				Thread.sleep(sleepTime);
 			} catch (InterruptedException e) {
-				System.out.println("There was an issue trying to put the thread to sleep");
+				System.out.println("Desk was interupted from processing passenger");
 			}
 			try{
 				Passenger nextPassenger = queue.removeNextPassenger();
@@ -56,20 +58,19 @@ public class CheckInHandler extends Thread implements Subject {
 				if(checkDetails(nextPassenger.getBookingRefCode(), nextPassenger.getLastName())){
 					float fee = processPassenger(nextPassenger.getBookingRefCode(), 
 					nextPassenger.getBaggageDimensions(), nextPassenger.getBaggageWeight());
-					
-					// TODO Log passenger Checked in successfully 
-					// System.out.println(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged £"+fee+" at time "+simClock.getTimeString());
-					log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged £"+fee+" at time "+simClock.getTimeString());
-					System.out.println(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged £"+fee+" at time "+simClock.getTimeString());
+
+					log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged ï¿½"+fee+" at time "+simClock.getTimeString());
 				}
 				else{
-					// TODO Log passenger Checked in failed
-					// System.out.println(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in failed at time" + simClock.getTimeString());
+					
 					log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in failed at time" + simClock.getTimeString());
 				}
 				
 			}catch(NoSuchElementException e){
 				System.out.println("Theres no one in the queue to process!");
+			}
+			if(simClock.getCurrentTime()>ClosureTime){
+				open = false;
 			}	
 		}
 		setStatus("closed");
