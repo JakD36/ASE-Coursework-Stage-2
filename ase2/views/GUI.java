@@ -2,6 +2,7 @@ package ase2.views;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -10,6 +11,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
+import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.border.EtchedBorder;
 
@@ -42,16 +44,26 @@ public class GUI extends JFrame
 	
 	//simulation control buttons
 	JButton btnStartSim;
-	JButton btnStopSim;
+	JButton btnStopSim; 
 	
+
 	//displays the current queue
 	QueueDisplay queueDisplay;
+
 	
 	//desks
 	CheckInHandler[] desks;
 	
 	//flights
 	Flight[] flights;
+
+	public void addStartListener(ActionListener al){
+		btnStartSim.addActionListener((al));
+	}
+
+
+
+
 	
 	public GUI(Simulation sim) {
 		//get the desks

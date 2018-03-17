@@ -15,8 +15,10 @@ import ase2.interfaces.Observer;
 import ase2.interfaces.Subject;
 import ase2.simulation.Clock;
 import ase2.views.GUI;
+import ase2.controllers.Controller;
+import ase2.simulation.Logging;
 
-public class Simulation implements Subject {
+public class Simulation extends Thread implements Subject {
 	
 	long simSpeed = 1000; // Sim runs simSpeed times faster than real life!
 	long simEnd = 23;
@@ -34,16 +36,12 @@ public class Simulation implements Subject {
 	ArrayList<Observer> simObservers;
 	
 	
-	//Collections handout states, "please don't use any of the Queue
-	//implementations which handle concurrent access in the coursework, such as
-	//ConcurrentLinkedQueue, since this would not help you to understand 
-	//the basic principles and problems of using threads."
-	//Therefore, a non-thread safe Queue has been used so that thread handling
-	//techniques can be demonstrated. LinkedList implements the Queue interface.
 	QueueHandler queue;
 	
 	public static void main(String[] args) {
-		new Simulation();
+		Simulation model = new Simulation();
+		GUI view = new GUI(model);
+		Controller controller = new Controller(view,model);
 	}
 	
 	/**
@@ -52,10 +50,7 @@ public class Simulation implements Subject {
 	 */
 	public Simulation() {
 
-		// Set up our simulation
-		simClock = Clock.getInstance();
-		Logging log = Logging.getInstance();
-		Random rand = new Random(); // Create our random number generator 
+		
 		// Collect passengers to be added into to system
 		passengersNotQueued = new ArrayList<Passenger>();
 		for(Passenger p : passengers.getNotCheckedIn().values()) {
@@ -69,17 +64,19 @@ public class Simulation implements Subject {
 		//create new desks 
 		queue = new QueueHandler();
 		desks.add(new CheckInHandler(queue)); //copy this to add more checkin desks
+	}
+
+	public synchronized void run(){
+		simClock = Clock.getInstance();
+		simClock.startClock();
+		Logging log = Logging.getInstance();
+		log.writeEvent("Simulation Instiated: " + simClock.getTimeString());
+		// Set up our simulation
 		
+		Random rand = new Random(); // Create our random number generator 
 		for (CheckInHandler desk : desks) {
 			desk.start(); //start all the checkin threads
 		}
-		
-		//create GUI
-		new GUI(this);
-		
-
-		log.writeEvent("Simulation Instiated: " + simClock.getTimeString());
-		
 		
 		
 		// Update simulation		

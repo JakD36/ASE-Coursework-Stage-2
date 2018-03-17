@@ -6,8 +6,8 @@ public class Clock
     long lastRealTime; // Time at last call
     long lastSimTime;
     long startSimTime = 6*3600*1000; // Start the simulation at 6 am
-    long speed = 100000;
-
+    long speed = 1000;
+    boolean started = false;
 
     //Static variable keeping the singleton instance of the class
 	static private Clock instance;
@@ -15,21 +15,34 @@ public class Clock
 	 * Creates a new instance of the class. It's private to allow the Singleton D.P.
 	 */
 	private Clock() {
-        lastRealTime = System.currentTimeMillis();
-        lastSimTime = startSimTime;
-	}
+    }
+    
+    public synchronized boolean startClock(){
+        if(!started){
+            lastRealTime = System.currentTimeMillis();
+            lastSimTime = startSimTime;
+            started = true;
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
     
     public synchronized long getCurrentTime(){
+        if(started){
+            long currentRealTime = System.currentTimeMillis();
+            long elapsedRealTime = (currentRealTime - lastRealTime); // elapsed time from last call
         
-        long currentRealTime = System.currentTimeMillis();
-        long elapsedRealTime = (currentRealTime - lastRealTime); // elapsed time from last call
+            long currentSimTime = lastSimTime + speed*elapsedRealTime;
         
-        long currentSimTime = lastSimTime + speed*elapsedRealTime;
+            lastSimTime = currentSimTime;
+            lastRealTime = currentRealTime;
         
-        lastSimTime = currentSimTime;
-        lastRealTime = currentRealTime;
-        
-        return currentSimTime;
+            return currentSimTime;
+        }else{
+            return startSimTime;
+        }
     }
     public synchronized long getSpeed(){
         return speed;
