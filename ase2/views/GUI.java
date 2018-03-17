@@ -42,7 +42,7 @@ public class GUI extends JFrame
 	
 	//simulation control buttons
 	JButton btnStartSim;
-	JButton btnStopSim;
+	//JButton btnStopSim;
 	
 	//displays the current queue
 	QueueDisplay queueDisplay;
@@ -108,10 +108,10 @@ public class GUI extends JFrame
 		
 		//add contol panel
 		btnStartSim = new JButton("Start");
-		btnStopSim = new JButton("Stop");
+		//btnStopSim = new JButton("Stop");
 		JPanel pnlSimControl = new JPanel();
 		pnlSimControl.add(btnStartSim);
-		pnlSimControl.add(btnStopSim);
+		//pnlSimControl.add(btnStopSim);
 		
 		c.gridy = 2;
 		panel.add(pnlSimControl, c);
