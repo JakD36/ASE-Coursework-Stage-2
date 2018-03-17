@@ -44,6 +44,7 @@ public class GUI extends JFrame
 	
 	//simulation control buttons
 	JButton btnStartSim;
+<<<<<<< HEAD
 	JButton btnStopSim; 
 	
 
@@ -120,10 +121,8 @@ public class GUI extends JFrame
 		
 		//add contol panel
 		btnStartSim = new JButton("Start");
-		btnStopSim = new JButton("Stop");
 		JPanel pnlSimControl = new JPanel();
 		pnlSimControl.add(btnStartSim);
-		pnlSimControl.add(btnStopSim);
 		
 		c.gridy = 2;
 		panel.add(pnlSimControl, c);
