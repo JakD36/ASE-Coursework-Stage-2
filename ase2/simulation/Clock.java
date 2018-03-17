@@ -2,12 +2,12 @@ package ase2.simulation;
 
 public class Clock 
 {
-    long startTime;
-    long lastTime; // Time at last call
+    
+    long lastRealTime; // Time at last call
     long lastSimTime;
     long startSimTime = 6*3600*1000; // Start the simulation at 6 am
-    long speed = 10000;
-
+    long speed = 1000;
+    boolean started = false;
 
     //Static variable keeping the singleton instance of the class
 	static private Clock instance;
@@ -15,17 +15,34 @@ public class Clock
 	 * Creates a new instance of the class. It's private to allow the Singleton D.P.
 	 */
 	private Clock() {
-        lastTime = System.currentTimeMillis();
-        lastSimTime = startSimTime;
-	}
+    }
+    
+    public synchronized boolean startClock(){
+        if(!started){
+            lastRealTime = System.currentTimeMillis();
+            lastSimTime = startSimTime;
+            started = true;
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
     
     public synchronized long getCurrentTime(){
-        long currentRealTime = System.currentTimeMillis();
-        long elapsedTime = (currentRealTime - lastTime); // elapsed time from last call
-        long currentSimTime = lastSimTime + speed*elapsedTime;
-        lastSimTime = currentSimTime;
-        lastTime = currentRealTime;
-        return currentSimTime;
+        if(started){
+            long currentRealTime = System.currentTimeMillis();
+            long elapsedRealTime = (currentRealTime - lastRealTime); // elapsed time from last call
+        
+            long currentSimTime = lastSimTime + speed*elapsedRealTime;
+        
+            lastSimTime = currentSimTime;
+            lastRealTime = currentRealTime;
+        
+            return currentSimTime;
+        }else{
+            return startSimTime;
+        }
     }
     public synchronized long getSpeed(){
         return speed;
@@ -41,7 +58,8 @@ public class Clock
 	}
     
     public synchronized void setSpeed(long speed){
-        getCurrentTime(); // updates the lastSimTime, so we are change the speed for only the time moving forward
+        getCurrentTime(); // calculates the simulation time for the old speed!
+        // So now when we change the speed below its only applied for the future!
         this.speed = speed;
     }
 	/*
