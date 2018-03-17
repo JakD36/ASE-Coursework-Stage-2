@@ -44,7 +44,7 @@ public class GUI extends JFrame
 	
 	//simulation control buttons
 	JButton btnStartSim;
-<<<<<<< HEAD
+
 	JButton btnStopSim; 
 	
 
