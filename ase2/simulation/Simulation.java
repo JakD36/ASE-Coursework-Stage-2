@@ -115,10 +115,9 @@ public class Simulation extends Thread implements Subject {
 		
 		log.writeEvent("Simulation complete: " + passengersAdded + " added.");
 		
-		for(CheckInHandler desk : desks) {
-			desk.open = false; //this line will terminate all the threads "nicely"
-			desk.interrupt();
-		}
+		// for(CheckInHandler desk : desks) {
+		// 	desk.open = false; //this line will terminate all the threads "nicely"
+		// }
 		
 		
 		queue.close();

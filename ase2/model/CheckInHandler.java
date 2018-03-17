@@ -19,9 +19,10 @@ public class CheckInHandler extends Thread implements Subject {
 	private QueueHandler queue;
 	private PassengerList passengers;
 	private FlightList flights;
-	long processTime = 20*60*1000; // time in ms to 5 minutes
+	long processTime = 10*60*1000; // time in ms to 5 minutes
 	String status = "started";
-	long ClosureTime = 18*3600*1000;
+	long ClosureTime = 12*3600*1000;
+	Clock simClock;
 
 
 	ArrayList<Observer> observers = new ArrayList<Observer>();
@@ -36,15 +37,16 @@ public class CheckInHandler extends Thread implements Subject {
 		flights = FlightList.getInstance();
 		passengers = PassengerList.getInstance();
 		this.queue = queue;
+		simClock = Clock.getInstance();
 	}
 	public synchronized long getClosureTime(){
 		return ClosureTime;
 	}
 	public void run(){
 		//tweaked so GUI can update that the desk is closed
-		while(open && PassengerList.getInstance().getNotCheckedIn().size() > 0){
+		while(simClock.getCurrentTime()<ClosureTime){// && PassengerList.getInstance().getNotCheckedIn().size() > 0){
 			
-			Clock simClock = Clock.getInstance();
+			
 			Logging log = Logging.getInstance();
 			
 			
@@ -58,7 +60,7 @@ public class CheckInHandler extends Thread implements Subject {
 
 					log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged £"+fee+" at time "+simClock.getTimeString());
 					setStatus("checked in successfully and is charged £"+fee);				
-					// TODO PLEASE FIX, I cant figure it out
+					
 					notifyObservers();
 					// Put the thread to sleep for a third of the process time to display they are checked in
 					try { 
@@ -76,14 +78,13 @@ public class CheckInHandler extends Thread implements Subject {
 				
 			}catch(NoSuchElementException e){
 				setStatus("Theres no one in the queue to process!");
+				notifyObservers();
 				System.out.println("Theres no one in the queue to process!");
 			}
-
-			// Check if the desk can close now
-			if(simClock.getCurrentTime()>ClosureTime){
-				open = false;
-			}	
+			// setStatus("Waiting for next customer!");
+			// notifyObservers();
 		}
+		System.out.println("WHY!!!!");
 		setStatus("closed");
 		notifyObservers();
 	}
