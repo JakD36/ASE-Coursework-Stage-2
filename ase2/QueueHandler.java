@@ -7,6 +7,7 @@ import java.util.NoSuchElementException;
 import ase2.interfaces.Observer;
 import ase2.interfaces.Subject;
 import ase2.model.Passenger;
+import ase2.model.PassengerList;
 
 public class QueueHandler implements Subject {
     private LinkedList<Passenger> queue;
@@ -27,15 +28,20 @@ public class QueueHandler implements Subject {
     }
 
     synchronized public Passenger removeNextPassenger() throws NoSuchElementException{
-        while(queue.isEmpty() && !closed){ // TODO Discuss if this is correct way to do this
-            try{wait();}catch(InterruptedException e){System.out.println("Thread was interupted");}
+    	if(PassengerList.getInstance().getNoNotQueued() > 0) {
+	        while(queue.isEmpty() && !closed){ // TODO Discuss if this is correct way to do this
+	            try{wait();}catch(InterruptedException e){System.out.println("Thread was interupted");}
+	        }
+	        
+	        //get and remove Passenger
+	        Passenger removed = queue.remove();
+	        notifyObservers();
+	        
+	        return removed;
         }
-        
-        //get and remove Passenger
-        Passenger removed = queue.remove();
-        notifyObservers();
-        
-        return removed;
+    	
+    	else
+    		return null;
     }
 
     synchronized public void close(){
