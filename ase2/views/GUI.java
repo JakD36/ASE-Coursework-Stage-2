@@ -45,7 +45,7 @@ public class GUI extends JFrame
 	//simulation control buttons
 	JButton btnStartSim;
 
-	JButton btnStopSim; 
+	// JButton btnStopSim; 
 	
 
 	//displays the current queue
