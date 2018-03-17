@@ -24,11 +24,8 @@ public class Simulation extends Thread implements Subject {
 	
 	ArrayList<CheckInHandler> desks;
 	int passengersAdded = 0;
-	boolean allPassengersQueued = false;
-	ArrayList<Passenger> passengersNotQueued;
-	QueueHandler queue;
-	int totalPassengers;
 	
+	QueueHandler queue;	
 	
 	ArrayList<Observer> simObservers;
 	
@@ -42,13 +39,7 @@ public class Simulation extends Thread implements Subject {
 	}
 	
 	public Simulation() {
-		// Collect passengers to be added into to system
-		PassengerList passengers = PassengerList.getInstance(); 
-		passengersNotQueued = new ArrayList<Passenger>();
-		for(Passenger p : passengers.getNotCheckedIn().values()) {
-			passengersNotQueued.add(p);
-		}
-		totalPassengers = passengersNotQueued.size();
+		
 		
 		//create new lists to accommodate for observers and checkin desks
 		simObservers = new ArrayList<Observer>();
@@ -95,12 +86,12 @@ public class Simulation extends Thread implements Subject {
 				System.out.println("Simulation was interupted from sleep");
 			}
 
-			double chanceOfArriving = 0.5d/(double)totalPassengers;
+			double chanceOfArriving = 0.5d/(double)PassengerList.getInstance().getTotalPassengers();
 			
-			for(int n = 0;n < passengersNotQueued.size(); n++){
+			for(int n = 0;n < PassengerList.getInstance().getPassengersNotQueued().size(); n++){
 				if( (rand.nextDouble() < chanceOfArriving) ) {
 					try{
-						Passenger passenger = getRandomToCheckIn();
+						Passenger passenger = PassengerList.getInstance().getRandomToCheckIn();
 
 						queue.joinQueue(passenger);
 					
@@ -119,6 +110,10 @@ public class Simulation extends Thread implements Subject {
 		// 	desk.open = false; //this line will terminate all the threads "nicely"
 		// }
 		
+		//wake up any desks waiting for Passengers
+		synchronized(queue) {
+			queue.notifyAll();
+		}
 		
 		queue.close();
 		try{
@@ -126,27 +121,6 @@ public class Simulation extends Thread implements Subject {
 		}catch(IOException e){}
 	}
 	
-	/**
-	 * Returns a random Passenger who has not checked in
-	 * or no null if all Passengers are checked in
-	 * @return a random Passenger who has not checked in or null
-	 * if all have checked in
-	 */
-	public Passenger getRandomToCheckIn() {
-		int passengersLeft = passengersNotQueued.size();
-		if(passengersLeft > 0) {
-			Random rand = new Random();
-			int randInt = rand.nextInt(passengersLeft);
-			Passenger passenger = passengersNotQueued.remove(randInt);
-			
-			//check if Passenger was the last one
-			if(passengersNotQueued.size() == 0)
-				allPassengersQueued = true;
-			
-			return (passenger);
-		}
-		return null;
-	}
 
 	@Override
 	public void registerObserver(Observer obs) {
@@ -168,12 +142,6 @@ public class Simulation extends Thread implements Subject {
 		}
 	}
 
-	public Passenger[] getPassengersNotQueuedList() {
-		Passenger[] passengers = new Passenger[this.passengersNotQueued.size()];
-		this.passengersNotQueued.toArray(passengers);
-		
-		return passengers;
-	}
 
 	public Passenger[]  getQueuedPassengersList() {
 		//TODO: get method in QueueHandler needed! Add it then!
