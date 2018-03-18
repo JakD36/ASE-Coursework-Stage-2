@@ -111,6 +111,8 @@ public class GUI extends JFrame
 		
 		c.gridx = 0;
 		
+		c.weightx = 1;
+		
 		//set margins
 		c.insets = new Insets(2,5,2,5);
 		
@@ -139,6 +141,7 @@ public class GUI extends JFrame
 		c.insets = new Insets(2,5,2,0);
 		
 		//add a first check in desk
+		c.weightx = 0.5;
 		c.gridwidth = 4;
 		c.gridx = 0;
 		c.gridy = 4;
@@ -163,6 +166,7 @@ public class GUI extends JFrame
 		c.insets = new Insets(2,5,2,5);
 		
 		//add a first flight
+		c.weightx = 0.25;
 		c.gridwidth = 1;
 		c.gridx = 0;
 		c.gridy = 5;
@@ -214,8 +218,6 @@ public class GUI extends JFrame
 		//should stay as last line of GUI creation
 		//to avoid weird behaviour on Mac
 		this.setVisible(true);
-
-		
 	}
 	
 	/**

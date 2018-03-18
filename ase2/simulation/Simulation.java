@@ -75,30 +75,36 @@ public class Simulation extends Thread implements Subject {
 
 		// TODO not happy with this to be honest it ends up in busy waiting 
 		// add passengers to the system!
+		//the number of times Passenger arrival has been evaluated
+		//to compare with the correct number based on time
+		long timesEvaluated = 0;
+		//the amount of evaluations that should have occured
+		long evaluationsPending = 0;
+		
 		while(simClock.getCurrentTime() < simEndTime) {
 			
 			// Randomly decide if passengers arrive at airport	
 			long AverageTimeBetweenArrival = 2*60*1000; // 2 min on average between arrivals
-			try { 
-				long sleepTime = AverageTimeBetweenArrival/simClock.getSpeed();
-				Thread.sleep(sleepTime);
-			} catch (InterruptedException e) {
-				System.out.println("Simulation was interupted from sleep");
-			}
-
+			
+			//the amount of evaluations that should have occurred
+			evaluationsPending = (simClock.getCurrentTime()-simClock.getStartTime())/AverageTimeBetweenArrival;
+			
 			double chanceOfArriving = 0.5d/(double)PassengerList.getInstance().getTotalPassengers();
 			
-			for(int n = 0;n < PassengerList.getInstance().getPassengersNotQueued().size(); n++){
-				if( (rand.nextDouble() < chanceOfArriving) ) {
-					try{
-						Passenger passenger = PassengerList.getInstance().getRandomToCheckIn();
-
-						queue.joinQueue(passenger);
-					
-						log.writeEvent("Adding " + passenger.getBookingRefCode() + " to Queue at time >> "+simClock.getTimeString()+ ", "+ ++passengersAdded + " added.");
-					}
-					catch(NullPointerException e){
+			while(evaluationsPending > timesEvaluated) {
+				timesEvaluated++;
+				for(int n = 0;n < PassengerList.getInstance().getPassengersNotQueued().size(); n++){
+					if( (rand.nextDouble() < chanceOfArriving) ) {
+						try{
+							Passenger passenger = PassengerList.getInstance().getRandomToCheckIn();
+	
+							queue.joinQueue(passenger);
 						
+							log.writeEvent("Adding " + passenger.getBookingRefCode() + " to Queue at time >> "+simClock.getTimeString()+ ", "+ ++passengersAdded + " added.");
+						}
+						catch(NullPointerException e){
+							
+						}
 					}
 				}
 			}
