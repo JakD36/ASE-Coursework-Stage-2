@@ -44,7 +44,8 @@ public class CheckInHandler extends Thread implements Subject {
 	}
 	public void run(){
 		//tweaked so GUI can update that the desk is closed
-		while(simClock.getCurrentTime()<ClosureTime){// && PassengerList.getInstance().getNotCheckedIn().size() > 0){
+		while(simClock.getCurrentTime()<ClosureTime
+				&& PassengerList.getInstance().getNotCheckedIn().size() > 0){// ){
 			
 			
 			Logging log = Logging.getInstance();
@@ -52,28 +53,29 @@ public class CheckInHandler extends Thread implements Subject {
 			
 			try{
 				Passenger nextPassenger = queue.removeNextPassenger();
-
-				if(checkDetails(nextPassenger.getBookingRefCode(), nextPassenger.getLastName())){
-					
-					float fee = processPassenger(nextPassenger.getBookingRefCode(), 
-					nextPassenger.getBaggageDimensions(), nextPassenger.getBaggageWeight());
-
-					log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged £"+fee+" at time "+simClock.getTimeString());
-					setStatus("checked in successfully and is charged £"+fee);				
-					
-					notifyObservers();
-					// Put the thread to sleep for a third of the process time to display they are checked in
-					try { 
-						long sleepTime = (processTime/3)/simClock.getSpeed();
-						Thread.sleep(sleepTime);
-					} catch (InterruptedException i) {
-						System.out.println("Desk was interupted from displaying fee");
+				if(nextPassenger != null) {
+					if(checkDetails(nextPassenger.getBookingRefCode(), nextPassenger.getLastName())){
+						
+						float fee = processPassenger(nextPassenger.getBookingRefCode(), 
+						nextPassenger.getBaggageDimensions(), nextPassenger.getBaggageWeight());
+	
+						log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged £"+fee+" at time "+simClock.getTimeString());
+						setStatus("checked in successfully and is charged £"+fee);				
+						
+						notifyObservers();
+						// Put the thread to sleep for a third of the process time to display they are checked in
+						try { 
+							long sleepTime = (processTime/3)/simClock.getSpeed();
+							Thread.sleep(sleepTime);
+						} catch (InterruptedException i) {
+							System.out.println("Desk was interupted from displaying fee");
+						}
+						
 					}
-					
-				}
-				else{
-					log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in failed at time" + simClock.getTimeString());
-					setStatus(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in failed");
+					else{
+						log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in failed at time" + simClock.getTimeString());
+						setStatus(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in failed");
+					}
 				}
 				
 			}catch(NoSuchElementException e){
@@ -84,7 +86,7 @@ public class CheckInHandler extends Thread implements Subject {
 			// setStatus("Waiting for next customer!");
 			// notifyObservers();
 		}
-		System.out.println("WHY!!!!");
+
 		setStatus("closed");
 		notifyObservers();
 	}

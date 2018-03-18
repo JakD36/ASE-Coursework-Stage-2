@@ -7,6 +7,7 @@ import java.util.NoSuchElementException;
 import ase2.interfaces.Observer;
 import ase2.interfaces.Subject;
 import ase2.model.Passenger;
+import ase2.model.PassengerList;
 
 public class QueueHandler implements Subject {
     private LinkedList<Passenger> queue;
