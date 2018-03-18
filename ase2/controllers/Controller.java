@@ -28,8 +28,10 @@ public class Controller{
     // inner class SetListener responds when user sets time
     public class StartListener implements ActionListener{
         public void actionPerformed(ActionEvent e){
+        	//do not attempt to restart an active sim
             if(!model.isAlive()){
-                model.start(); 
+                if(model.getState() != Thread.State.TERMINATED)
+                		model.start();
             }
         }
     }

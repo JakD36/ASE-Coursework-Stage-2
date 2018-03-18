@@ -112,13 +112,15 @@ public class Simulation extends Thread implements Subject {
 		
 		//wake up any desks waiting for Passengers
 		synchronized(queue) {
+			queue.close();
+			System.out.println(desks.get(0).getStatus());
+			System.out.println(desks.get(1).getStatus());
+			desks.get(0).interrupt();
+			desks.get(1).interrupt();
 			queue.notifyAll();
 		}
 		
-		queue.close();
-		desks.get(0).interrupt();
-		desks.get(1).interrupt();
-		queue.notifyAll();
+
 		try{
 			log.flush();
 		}catch(IOException e){}
