@@ -64,13 +64,19 @@ public class FlightList {
 				String inputLine = scanner.nextLine();   //do something with this line     
 				String parts[] = inputLine.split(",");
 				
+				String []depTime = parts[7].split(":");
+				// (hours * 3600) -> hours converted in secs - (mins * 60) -> mins converted in secs.
+				//their sum is multiplied by 1000 to convert them in millsecs.
+				long departureTime = (Integer.parseInt(depTime[0]) * 3600l + Integer.parseInt(depTime[1]) * 60l) * 1000l;
+				
 				Flight currentFlight = new Flight(parts[0],
 						parts[1],
 						parts[2],
 						Integer.parseInt(parts[3]),
 						Float.parseFloat(parts[4]),
 						Float.parseFloat(parts[5]),
-						Float.parseFloat(parts[6]));
+						Float.parseFloat(parts[6]),
+						departureTime);
 
 				flights.put(parts[0], currentFlight);
 			}

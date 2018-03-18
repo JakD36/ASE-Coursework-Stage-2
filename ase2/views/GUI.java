@@ -214,6 +214,8 @@ public class GUI extends JFrame
 		//should stay as last line of GUI creation
 		//to avoid weird behaviour on Mac
 		this.setVisible(true);
+
+		
 	}
 	
 	/**

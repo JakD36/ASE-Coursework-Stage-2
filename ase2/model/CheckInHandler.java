@@ -3,6 +3,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
 import ase2.QueueHandler;
+import ase2.exceptions.DepartedFlightException;
 import ase2.exceptions.IllegalReferenceCodeException;
 import ase2.interfaces.Observer;
 import ase2.interfaces.Subject;
@@ -48,13 +49,13 @@ public class CheckInHandler extends Thread implements Subject {
 		//tweaked so GUI can update that the desk is closed
 		while(simClock.getCurrentTime()<ClosureTime
 				&& PassengerList.getInstance().getNotCheckedIn().size() > 0){// ){
-			
-			
+
 			Logging log = Logging.getInstance();
 			
+			Passenger nextPassenger=null;
 			
 			try{
-				Passenger nextPassenger = queue.removeNextPassenger();
+				nextPassenger = queue.removeNextPassenger();
 				if(nextPassenger != null) {
 					if(checkDetails(nextPassenger.getBookingRefCode(), nextPassenger.getLastName())){
 						
@@ -93,6 +94,10 @@ public class CheckInHandler extends Thread implements Subject {
 				setStatus("Theres no one in the queue to process!");
 				notifyObservers();
 				System.out.println("Theres no one in the queue to process!");
+			}catch(DepartedFlightException dfe) {
+				log.writeEvent(String.format("Passenger %s %s has arrived too late", nextPassenger.getFirstName(),nextPassenger.getLastName()));
+				setStatus(String.format("Passenger %s %s has arrived too late", nextPassenger.getFirstName(),nextPassenger.getLastName()));
+				
 			}
 			// setStatus("Waiting for next customer!");
 			// notifyObservers();
@@ -124,9 +129,17 @@ public class CheckInHandler extends Thread implements Subject {
 		} catch (InterruptedException e) {
 			System.out.println("Desk was interupted from processing passenger");
 		}
+	
 
 		if( passengers.getNotCheckedIn().containsKey(bookingReference) ){	// Check that the booking reference provided matches, a passenger to be checked in
 			//Strings should compared with .equals in Java
+			
+			Flight flight = passengers.getNotCheckedIn().get(bookingReference).getFlight();
+			
+			if (flight.hasDeparted(simClock.getCurrentTime())) {
+				throw new DepartedFlightException(flight);
+			}
+			
 			if(passengers.getNotCheckedIn().get(bookingReference).getLastName().equals(lastName)){	// Checks if the passenger 
 				return true; // Return true to show that the details match with a passenger to be checked in.
 			}
