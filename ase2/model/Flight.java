@@ -10,6 +10,7 @@ public class Flight implements Subject {
 	private String flightCode;
 	private String destination;
 	private String carrier;
+	private long departureTime;
 	
 	//limits per passengers
 	private float maxBaggageVolume;
@@ -40,7 +41,7 @@ public class Flight implements Subject {
 	 * @param feeMultiplier used for calculating excess fees
 	 */
 	public Flight(String flightCode, String destination, String carrier,
-			int passengerCapacity, float maxVol, float maxWeight,float feeMultiplier) {
+			int passengerCapacity, float maxVol, float maxWeight,float feeMultiplier,long time) {
 
 		//assign the arguments to the class attributes
 		this.flightCode = flightCode;
@@ -50,6 +51,7 @@ public class Flight implements Subject {
 		this.maxBaggageVolume = maxVol;
 		this.maxBaggageWeight = maxWeight;
 		this.feeMultiplier = feeMultiplier;
+		this.departureTime=time;
 
 		this.currentTotalPassengers = 0;
 		this.currentTotalBaggageVolume = 0;
@@ -111,6 +113,19 @@ public class Flight implements Subject {
 	 */
 	public synchronized float getFeeMultiplier(){
 		return feeMultiplier;
+	}
+	
+	/**
+	 *  returns the departure time of the flight
+	 *  
+	 *  @return departure time
+	 */
+	public synchronized long getDepartureTime() {
+		return this.departureTime;
+	}
+	
+	public synchronized boolean hasDeparted(long currentTime) {
+		return this.getDepartureTime()<=currentTime;
 	}
 	
 	/**
