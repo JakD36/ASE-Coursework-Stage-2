@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 import java.util.Scanner;
 
 import ase2.exceptions.IllegalReferenceCodeException;
@@ -11,10 +12,12 @@ import ase2.exceptions.IllegalReferenceCodeException;
 public class PassengerList {
 	private HashMap<String,Passenger> passengersCheckedIn;
 	private HashMap<String,Passenger> passengersNotCheckedIn;
+	ArrayList<Passenger> passengersNotQueued;
+	boolean allPassengersQueued = false;
 	
 	//the instance
 	private static PassengerList instance;
-	
+		
 	/**
 	 * Returns the instance of PassengerList, or, if there is no
 	 * instance, instantiates one and returns it. The method
@@ -35,6 +38,7 @@ public class PassengerList {
 				}
 			}
 		}
+		
 		return instance;
 	}
 	
@@ -56,6 +60,13 @@ public class PassengerList {
 		}catch(IllegalReferenceCodeException e){
 			System.out.println(e.getMessage());
 		}
+		
+		// Collect passengers to be added into to system
+		passengersNotQueued = new ArrayList<Passenger>();
+		for(Passenger p : passengersNotCheckedIn.values()) {
+			passengersNotQueued.add(p);
+		}
+		//totalPassengers = passengersNotQueued.size();
 	}
 	
 	/**
@@ -76,12 +87,15 @@ public class PassengerList {
 			while (scanner.hasNextLine()) {     
 				String inputLine = scanner.nextLine();   
 				String parts[] = inputLine.split(",");
+				
+				Flight flight = flights.get(parts[3]);// Use flight code to link to the flight object
+				flight.incrementPassengersBookedAboard();
 
 				if(!this.add(new Passenger(
 					parts[0], // Booking reference code
 					parts[1], // First name
 					parts[2], // Last name
-					flights.get(parts[3])),	// Use flight code to link to the flight object
+					flight),	
 					Boolean.parseBoolean(parts[4]))){ // Whether the passenger is already checked in
 						duplicates.add(parts[0]);
 				}
@@ -201,5 +215,38 @@ public class PassengerList {
 		else{
 			return false;
 		}
+	}
+	
+	/**
+	 * Returns a random Passenger who has not checked in
+	 * or no null if all Passengers are checked in
+	 * @return a random Passenger who has not checked in or null
+	 * if all have checked in
+	 */
+	public Passenger getRandomToCheckIn() {
+		if(passengersNotQueued.size() > 0) {
+			Random rand = new Random();
+			int randInt = rand.nextInt(passengersNotQueued.size());
+			Passenger passenger = passengersNotQueued.remove(randInt);
+			
+			//check if Passenger was the last one
+			if(passengersNotQueued.size() == 0)
+				allPassengersQueued = true;
+			
+			return (passenger);
+		}
+		return null;
+	}
+	
+	public int getNoNotQueued() {
+		return passengersNotQueued.size();
+	}
+	
+	public ArrayList<Passenger> getPassengersNotQueued() {
+		return passengersNotQueued;
+	}
+	
+	public int getTotalPassengers() {
+		return passengersNotCheckedIn.size() + passengersCheckedIn.size();
 	}
 }

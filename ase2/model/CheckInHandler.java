@@ -1,24 +1,31 @@
 package ase2.model;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.util.LinkedList;
 
 import ase2.QueueHandler;
 import ase2.exceptions.IllegalReferenceCodeException;
+import ase2.interfaces.Observer;
+import ase2.interfaces.Subject;
+
+import java.util.ArrayList;
 import java.util.NoSuchElementException;
 import ase2.simulation.Clock;
 import ase2.simulation.Logging;
 
 
-public class CheckInHandler extends Thread{
+public class CheckInHandler extends Thread implements Subject {
 	
 	public boolean open = true;
 	private QueueHandler queue;
 	private PassengerList passengers;
 	private FlightList flights;
-	long processTime = 5*60*1000; // time in ms
-	
-	
+	long processTime = 10*60*1000; // time in ms to 5 minutes
+	String status = "started";
+	long ClosureTime = 12*3600*1000;
+	Clock simClock;
+
+
+	ArrayList<Observer> observers = new ArrayList<Observer>();
 	
 	/**
 	 * Constructor for the CheckInHandler.
@@ -30,43 +37,58 @@ public class CheckInHandler extends Thread{
 		flights = FlightList.getInstance();
 		passengers = PassengerList.getInstance();
 		this.queue = queue;
+		simClock = Clock.getInstance();
 	}
-
+	public synchronized long getClosureTime(){
+		return ClosureTime;
+	}
 	public void run(){
-		while(open){
+		//tweaked so GUI can update that the desk is closed
+		while(simClock.getCurrentTime()<ClosureTime
+				&& PassengerList.getInstance().getNotCheckedIn().size() > 0){// ){
 			
-			Clock simClock = Clock.getInstance();
+			
 			Logging log = Logging.getInstance();
 			
 			
-			try { 
-				long sleepTime = processTime/simClock.getSpeed();
-				Thread.sleep(sleepTime);
-			} catch (InterruptedException e) {
-				System.out.println("There was an issue trying to put the thread to sleep");
-			}
 			try{
 				Passenger nextPassenger = queue.removeNextPassenger();
-				
-				if(checkDetails(nextPassenger.getBookingRefCode(), nextPassenger.getLastName())){
-					float fee = processPassenger(nextPassenger.getBookingRefCode(), 
-					nextPassenger.getBaggageDimensions(), nextPassenger.getBaggageWeight());
-					
-					// TODO Log passenger Checked in successfully 
-					// System.out.println(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged £"+fee+" at time "+simClock.getTimeString());
-					log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged £"+fee+" at time "+simClock.getTimeString());
-
-				}
-				else{
-					// TODO Log passenger Checked in failed
-					// System.out.println(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in failed at time" + simClock.getTimeString());
-					log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in failed at time" + simClock.getTimeString());
+				if(nextPassenger != null) {
+					if(checkDetails(nextPassenger.getBookingRefCode(), nextPassenger.getLastName())){
+						
+						float fee = processPassenger(nextPassenger.getBookingRefCode(), 
+						nextPassenger.getBaggageDimensions(), nextPassenger.getBaggageWeight());
+	
+						log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged £"+fee+" at time "+simClock.getTimeString());
+						setStatus("checked in successfully and is charged £"+fee);				
+						
+						notifyObservers();
+						// Put the thread to sleep for a third of the process time to display they are checked in
+						try { 
+							long sleepTime = (processTime/3)/simClock.getSpeed();
+							Thread.sleep(sleepTime);
+						} catch (InterruptedException i) {
+							System.out.println("Desk was interupted from displaying fee");
+						}
+						
+					}
+					else{
+						log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in failed at time" + simClock.getTimeString());
+						setStatus(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in failed");
+					}
 				}
 				
 			}catch(NoSuchElementException e){
+				setStatus("Theres no one in the queue to process!");
+				notifyObservers();
 				System.out.println("Theres no one in the queue to process!");
-			}	
+			}
+			// setStatus("Waiting for next customer!");
+			// notifyObservers();
 		}
+
+		setStatus("closed");
+		notifyObservers();
 	}
 	
 	/**
@@ -80,6 +102,18 @@ public class CheckInHandler extends Thread{
 	 * @throws	IllegalReferenceCodeException	If the booking reference does match a passenger that is to be checked in or any passenger on the system.
 	 */
 	public synchronized boolean checkDetails(String bookingReference, String lastName) throws IllegalReferenceCodeException{
+		setStatus("checking details of " + bookingReference);
+		notifyObservers();
+		Clock simClock = Clock.getInstance();
+		// put the desk to sleep to take into account hte time to process passenger
+		try { 
+			long sleepTime = (processTime/3)/simClock.getSpeed();
+			Thread.sleep(sleepTime);
+			
+		} catch (InterruptedException e) {
+			System.out.println("Desk was interupted from processing passenger");
+		}
+
 		if( passengers.getNotCheckedIn().containsKey(bookingReference) ){	// Check that the booking reference provided matches, a passenger to be checked in
 			//Strings should compared with .equals in Java
 			if(passengers.getNotCheckedIn().get(bookingReference).getLastName().equals(lastName)){	// Checks if the passenger 
@@ -90,10 +124,16 @@ public class CheckInHandler extends Thread{
 			}
 		}
 		else if(passengers.getCheckedIn().containsKey(bookingReference)){ // Throw an exception if the matching passenger is already checked in
+			setStatus(bookingReference + "Is already checked in!");
+			notifyObservers();
 			throw new IllegalReferenceCodeException(bookingReference+": Is already checked in.");
+			
 		}
 		else{ // Throw an exception if there is no passenger that matches this booking reference code
+			setStatus(bookingReference+": There is no booking reference on record.");
+			notifyObservers();
 			throw new IllegalReferenceCodeException(bookingReference+": There is no booking reference on record.");
+			
 		}
 		
 	}
@@ -110,6 +150,18 @@ public class CheckInHandler extends Thread{
 	 * @throws	IllegalReferenceCodeException	If there is no passenger with a matching booking reference code.
 	 */
 	public synchronized float processPassenger(String bookingReference, float[] dimensions, float weight) throws IllegalReferenceCodeException{
+		setStatus("processing passenger " + bookingReference);
+		notifyObservers();
+		Clock simClock = Clock.getInstance();
+		// put the desk to sleep to take into account hte time to process passenger
+		
+		try { 
+			long sleepTime = (processTime/3)/simClock.getSpeed();
+			Thread.sleep(sleepTime);
+		} catch (InterruptedException e) {
+			System.out.println("Desk was interupted from processing passenger");
+		}
+		
 		float fee;	// Fee due from passenger, calculated from the weight Fee, volume fee and the multiplier for the passengers flight
 		float weightFee = 0f, volFee = 0f;
 		float multiplier = 1f;
@@ -147,11 +199,15 @@ public class CheckInHandler extends Thread{
 		}
 		else{
 			// If for some reason the passenger cannot be checked in, we need to return an error
+			setStatus("There is no passenger with this booking reference to be checked in,\n they may be already checked in: "+bookingReference);
+			notifyObservers();
 			throw new IllegalReferenceCodeException
 			("There is no passenger with this booking reference to be checked in,\n they may be already checked in: "+bookingReference);
+			
 		}
 
 		// Output the final fee due from the passenger,
+		
 		return fee;
 	}
 	
@@ -194,5 +250,41 @@ public class CheckInHandler extends Thread{
 		
 		//return for GUI
 		return finalReport;
+	}
+	
+	@Override
+	/**
+	 * add an Observer to this object
+	 */
+	public void registerObserver(Observer obs) {
+		this.observers.add(obs);
+	}
+
+	/**
+	 * remove an Observer from this object
+	 */
+	@Override
+	public void removeObserver(Observer obs) {
+		this.observers.remove(obs);	
+	}
+
+	/**
+	 * notify all Observers of an update
+	 */
+	@Override
+	public void notifyObservers() {
+		for (Observer obs : this.observers)
+		{
+			obs.update();
+		}
+	}
+	
+	public synchronized String getStatus() {
+		return status;
+	}
+	
+	public synchronized void setStatus(String status) {
+		
+		this.status = status;
 	}
 }

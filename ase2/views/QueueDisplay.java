@@ -2,14 +2,19 @@ package ase2.views;
 
 
 import java.awt.GridLayout;
+import java.util.LinkedList;
+
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EtchedBorder;
 import javax.swing.table.DefaultTableModel;
 
+import ase2.QueueHandler;
 import ase2.interfaces.Observer;
+import ase2.model.Passenger;
 
 public class QueueDisplay extends JPanel 
 	implements Observer {
@@ -23,11 +28,19 @@ public class QueueDisplay extends JPanel
 	//the actual table
 	JTable table;
 	
+	//the QueueHandler this QueueDisplay represents
+	QueueHandler queueHandler;
+	
 	private static final long serialVersionUID = 1L;
 	
-	public QueueDisplay(int id) {
+	public QueueDisplay(QueueHandler queueHandler) {
+		queueHandler.registerObserver(this);
+		
 		//set layout
 		setLayout(new GridLayout(1,1));
+		
+		//set the QueueHandler this QueueDisplay represents
+		this.queueHandler = queueHandler;
 		
 		//add a border to the panel
 		setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
@@ -42,18 +55,38 @@ public class QueueDisplay extends JPanel
 		//make the table uneditable
 		table.setDefaultEditor(Object.class, null);
 
-		model.addRow(new String[] {"test", "test2"});
+		model.addRow(new String[] {"", ""});
 		
 		add(scrollPane);			
 	}
 
 	@Override
-	public void update() {
+	public synchronized void update() {
 		//create a new model to clear old data
 		model = new DefaultTableModel(0, 2);
-		model.setColumnIdentifiers(labels);
-		table.setModel(model);
+		model.setColumnIdentifiers(labels);		
 		
-		//TODO Get queue and loop through it adding the Passenger details
+		//get a copy of the latest list of Passengers
+		LinkedList<Passenger> currentQueue = queueHandler.getCurrentQueue();
+		
+		//add the Passengers to the new model
+		for(Passenger p : currentQueue) {
+			model.addRow(new String[] {p.getBookingRefCode(), p.getFlight().getFlightCode()});
+		}
+		
+		//if their are no Passengers, create a placeholder
+		if(currentQueue.size() < 1)
+			model.addRow(new String[] {"empty", "empty"});
+		
+		//the model must be update from the GUI thread by creating 
+		//an anonymous object implementing runnable
+		
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				//update the table with the new model		
+				table.setModel(model);
+			}
+		});
 	}
 }
