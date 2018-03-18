@@ -9,6 +9,8 @@ import ase2.interfaces.Subject;
 
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
+import java.util.Random;
+
 import ase2.simulation.Clock;
 import ase2.simulation.Logging;
 
@@ -55,6 +57,15 @@ public class CheckInHandler extends Thread implements Subject {
 				Passenger nextPassenger = queue.removeNextPassenger();
 				if(nextPassenger != null) {
 					if(checkDetails(nextPassenger.getBookingRefCode(), nextPassenger.getLastName())){
+						
+						Random rand = new Random();
+						nextPassenger.setBaggageWeight(rand.nextFloat()*40);
+						float [] baggageDimensions = {
+								rand.nextFloat()*70, rand.nextFloat()*60, rand.nextFloat()*40 
+						};
+						
+						nextPassenger.setBaggageDimensions(baggageDimensions);
+						
 						
 						float fee = processPassenger(nextPassenger.getBookingRefCode(), 
 						nextPassenger.getBaggageDimensions(), nextPassenger.getBaggageWeight());
