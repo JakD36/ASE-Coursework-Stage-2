@@ -26,7 +26,7 @@ public class CheckInHandler extends Thread implements Subject {
 	String status = "started";
 	long ClosureTime = 12*3600*1000;
 	Clock simClock;
-
+	double totalFees;
 
 	ArrayList<Observer> observers = new ArrayList<Observer>();
 	
@@ -72,7 +72,8 @@ public class CheckInHandler extends Thread implements Subject {
 						nextPassenger.getBaggageDimensions(), nextPassenger.getBaggageWeight());
 	
 						log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged £"+fee+" at time "+simClock.getTimeString());
-						setStatus("checked in successfully and is charged £"+fee);				
+						setStatus("checked in successfully and is charged:<br/> &pound;"+ String.format("%.2f", fee));	
+						totalFees += fee;		
 						
 						notifyObservers();
 						// Put the thread to sleep for a third of the process time to display they are checked in
@@ -103,7 +104,7 @@ public class CheckInHandler extends Thread implements Subject {
 			// notifyObservers();
 		}
 
-		setStatus("closed");
+		setStatus("closed.<br/>Collected: "+String.format("&pound;%.2f", totalFees));
 		notifyObservers();
 	}
 	

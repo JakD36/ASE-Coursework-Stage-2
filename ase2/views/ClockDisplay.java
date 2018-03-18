@@ -13,7 +13,7 @@ import ase2.simulation.Clock;
 public class ClockDisplay extends JPanel {
 	private static final long serialVersionUID = 1L;
 	JLabel face;
-	
+
 	//copy of the clock instance
 	Clock clock = Clock.getInstance();
 	
