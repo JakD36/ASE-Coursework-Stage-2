@@ -5,6 +5,7 @@ import java.awt.GridLayout;
 import javax.swing.BorderFactory;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EtchedBorder;
 
 import ase2.interfaces.Observer;
@@ -41,7 +42,13 @@ public class DeskDisplay extends JPanel
 
 	@Override
 	public void update() {
-		data.setText("<html><p align = 'center'>Desk # " + id 
-				+ " is " + desk.getStatus() + ".</p></html>");
+		//update display on GUI thread
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				data.setText("<html><p align = 'center'>Desk # " + id 
+						+ " is " + desk.getStatus() + ".</p></html>");
+			}
+		});
 	}
 }
