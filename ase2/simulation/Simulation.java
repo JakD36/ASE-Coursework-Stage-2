@@ -148,12 +148,6 @@ public class Simulation extends Thread implements Subject {
 	}
 
 
-	public Passenger[]  getQueuedPassengersList() {
-		//TODO: get method in QueueHandler needed! Add it then!
-		
-		return null;
-	}
-
 	public CheckInHandler[] getCheckInDesks() {
 		CheckInHandler[] desks = new CheckInHandler[this.desks.size()];
 		this.desks.toArray(desks);
