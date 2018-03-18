@@ -21,7 +21,6 @@ public class QueueHandler implements Subject {
     }
 
     synchronized public void joinQueue(Passenger newPassenger){
-    	
     	notifyObservers();
         queue.add(newPassenger);
         notifyAll();
@@ -30,16 +29,13 @@ public class QueueHandler implements Subject {
     synchronized public Passenger removeNextPassenger() throws NoSuchElementException{
     	if(PassengerList.getInstance().getNoNotQueued() > 0) {
 	        while(queue.isEmpty() && !closed){ // TODO Discuss if this is correct way to do this
-	            try{wait();}catch(InterruptedException e){System.out.println("Thread was interupted");}
+	            try{wait();}catch(InterruptedException e){System.out.println("Remove next passenger: Thread was interupted");}
 	        }
-	        
 	        //get and remove Passenger
 	        Passenger removed = queue.remove();
 	        notifyObservers();
-	        
 	        return removed;
         }
-    	
     	else
     		return null;
     }

@@ -116,6 +116,9 @@ public class Simulation extends Thread implements Subject {
 		}
 		
 		queue.close();
+		desks.get(0).interrupt();
+		desks.get(1).interrupt();
+		queue.notifyAll();
 		try{
 			log.flush();
 		}catch(IOException e){}
