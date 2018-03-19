@@ -3,6 +3,7 @@ package ase2;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
+import java.util.Random;
 
 import ase2.interfaces.Observer;
 import ase2.interfaces.Subject;
@@ -10,34 +11,74 @@ import ase2.model.Passenger;
 import ase2.model.PassengerList;
 
 public class QueueHandler implements Subject {
-    private LinkedList<Passenger> queue;
+    private ArrayList<LinkedList<Passenger>> queues;
     private boolean closed; 
+    Random rand = new Random();
     
 	ArrayList<Observer> observers = new ArrayList<Observer>();
     
-    public QueueHandler(){
-        queue = new LinkedList<Passenger>();
+    public QueueHandler(int numberOfQueues){
+        queues = new ArrayList<LinkedList<Passenger>>();
         closed = false;
-    }
-
-    synchronized public void joinQueue(Passenger newPassenger){
-    	notifyObservers();
-        queue.add(newPassenger);
-        notifyAll();
-    }
-
-    synchronized public Passenger removeNextPassenger() throws NoSuchElementException{
-    	if(PassengerList.getInstance().getNoNotQueued() > 0) {
-	        while(queue.isEmpty() && !closed){ // TODO Discuss if this is correct way to do this
-	            try{wait();}catch(InterruptedException e){System.out.println("Remove next passenger: Thread was interupted");}
-	        }
-	        //get and remove Passenger
-	        Passenger removed = queue.remove();
-	        notifyObservers();
-	        return removed;
+        
+        for(int i = 0; i < numberOfQueues; i++) {
+        	queues.add(new LinkedList<Passenger>());
         }
-    	else
-    		return null;
+    }
+
+    /**
+     * Adds Passenger to the shortest queue
+     * @param newPassenger the Passenger to add
+     */
+     public void joinQueue(Passenger newPassenger){ 	
+    	//find the shortest queue
+    	LinkedList<Passenger> shortest = queues.get(0);
+    	
+    	for(LinkedList<Passenger> queue : queues) {
+    		if(queue.size() < shortest.size())
+    	    	shortest = queue;
+    	}
+    	
+    	synchronized(shortest) {
+	    	shortest.add(newPassenger);
+	    	shortest.notifyAll();
+	    	
+    	}
+    	
+    	
+    	notifyObservers();
+    }
+    
+    /**
+     * Checks all queues to see if they have Passengers.
+     * @return whether the queues are empty
+     */
+    public boolean isEmpty() {
+		boolean empty = true;
+
+		for(LinkedList<Passenger> queue : queues) {
+    		if(queue.size() > 0)
+    			empty = false;
+    	}
+		
+		return empty;
+    }
+
+    public Passenger removeNextPassenger(int queueId) throws NoSuchElementException{
+    	Passenger removed = null;
+    	//sync on the specific queue
+    	synchronized(queues.get(queueId)) {
+	    	if(PassengerList.getInstance().getNoNotQueued() > 0) {
+		        while(queues.get(queueId).size() < 1 && !closed){ // TODO Discuss if this is correct way to do this
+		       		try{queues.get(queueId).wait();}catch(InterruptedException e){System.out.println("Remove next passenger: Thread was interupted");}
+		        }  
+	    	}
+	    	//get and remove Passenger
+	    	removed = queues.get(queueId).remove();
+    	}
+    	
+    	notifyObservers();
+    	return removed;
     }
 
     synchronized public void close(){
@@ -72,9 +113,10 @@ public class QueueHandler implements Subject {
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
-	public LinkedList<Passenger> getCurrentQueue() {
+	public LinkedList<Passenger> getCurrentQueue(int id) {
 		//clone returned list so it can be read safely by another thread
-		return (LinkedList<Passenger>) queue.clone();
+		synchronized(queues.get(id)) {
+			return (LinkedList<Passenger>) queues.get(id);
+		}
 	}
 }

@@ -3,7 +3,6 @@ package ase2.views;
 import java.awt.GridLayout;
 
 import javax.swing.BorderFactory;
-import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;

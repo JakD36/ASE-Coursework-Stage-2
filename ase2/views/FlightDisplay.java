@@ -1,10 +1,8 @@
 package ase2.views;
 
-import java.awt.Dimension;
 import java.awt.GridLayout;
 
 import javax.swing.BorderFactory;
-import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
@@ -43,7 +41,8 @@ public class FlightDisplay extends JPanel
 					+ String.format("%.2f", flight.getTotalBaggageWeight()) + "kg/"
 					+ String.format("%.2f", flight.getTotalBaggageWeight()) + "kg<br/>"
 					+ String.format("%.2f", flight.getTotalBaggageVolume()/100) + "m<sup>2</sup>/"
-					+ String.format("%.2f", flight.getMaxBaggageVolume()/100) + "m<sup>2</sup></p></html>");
+					+ String.format("%.2f", flight.getMaxBaggageVolume()/100) + "m<sup>2</sup><br/>"
+					+ "<font color='white'>---------------------------------</font></p></html>");
 		
 		add(data);
 	}
@@ -61,7 +60,8 @@ public class FlightDisplay extends JPanel
 							+ String.format("%.2f", flight.getTotalBaggageWeight()) + "kg/"
 							+ String.format("%.2f", flight.getTotalBaggageWeight()) + "kg<br/>"
 							+ String.format("%.2f", flight.getTotalBaggageVolume()/100) + "m<sup>2</sup>/"
-							+ String.format("%.2f", flight.getMaxBaggageVolume()/100) + "m<sup>2</sup></p></html>");
+							+ String.format("%.2f", flight.getMaxBaggageVolume()/100) + "m<sup>2</sup><br/>"
+							+ "<font color='white'>---------------------------------</font></p></html>");
 			}
 		});
 	}
