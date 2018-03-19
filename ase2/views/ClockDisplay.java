@@ -44,15 +44,5 @@ public class ClockDisplay extends JPanel {
 				face.setText("<html><font color='green'>" + updates.get(updates.size() - 1) + "</font></html>");
 			}
 		}.execute();
-		
-
-	}
-	
-	/**
-	 * Set time in milliseconds
-	 * @param time in milliseconds
-	 */
-	public void updateTime(int time) {
-		
 	}
 }

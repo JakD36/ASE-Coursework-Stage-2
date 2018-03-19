@@ -11,6 +11,8 @@ mor0001,Giorgio,Moroder,BAW1234,false
 arc0001,Jeffrey,Archer,BAW1234,false
 dag0001,Rick,Dagless,BAW1234,false
 woo0001,Madeleine,Wool,BAW1234,false
+hol0001,Sherlock,Holmes,BAW1234,false
+wat0001,James,Watson,BAW1234,false
 lov0002,Lene,Lovich,BNF0001,false
 wal0001,Johnnie,Walker,BNF0001,false
 bea0002,Jim,Beam,BNF0001,false
@@ -43,7 +45,7 @@ cry0001,Robert,Cryer,KLM1234,false
 roa0001,Ted,Roach,KLM1234,false
 sta0001,Tony,Stamp,KLM1234,false
 bur0001,Frank,Burnside,KLM1234,false
-hol0001,Reginald,Hollis,KLM1234,false
+hol0002,Reginald,Hollis,KLM1234,false
 ack0001,June,Ackland,KLM1234,false
 mea0001,Jack,Meadows,KLM1234,false
 win0001,Barbara,Wintergreen,KLM1234,false

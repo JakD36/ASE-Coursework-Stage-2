@@ -6,7 +6,7 @@ public class Clock
     long lastRealTime; // Time at last call
     long lastSimTime;
     long startSimTime = 6*3600*1000; // Start the simulation at 6 am
-    long speed = 500;
+    long speed = 800;
     boolean started = false;
 
     //Static variable keeping the singleton instance of the class
@@ -27,6 +27,13 @@ public class Clock
         else{
             return false;
         }
+    }
+    
+    public synchronized void resetClock() {
+    	lastRealTime = System.currentTimeMillis();
+        lastSimTime = startSimTime;
+        started = true;
+        System.out.println("reset");
     }
     
     public synchronized long getCurrentTime(){

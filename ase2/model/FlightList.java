@@ -102,4 +102,8 @@ public class FlightList {
 	public synchronized Collection<Flight> getValues() {
 		return flights.values();
 	}
+	
+	public static synchronized void reset() {
+		instance = new FlightList();
+	}
 }

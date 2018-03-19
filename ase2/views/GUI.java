@@ -12,11 +12,13 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
+import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.border.EtchedBorder;
 
 import ase2.model.CheckInHandler;
 import ase2.model.Flight;
+import ase2.simulation.Clock;
 import ase2.simulation.Simulation;
 
 
@@ -39,13 +41,15 @@ public class GUI extends JFrame
 	JLabel lblBookingRef;
 	JLabel lblSurname;
 	JLabel lblResponse;
+	JSlider sldSpeed;
 	JButton btnCheckIn;
 	CheckInHandler checkInHandler;
 	
 	//simulation control buttons
 	JButton btnStartSim;
 
-	// JButton btnStopSim; 
+	//the content panel
+	JPanel panel;
 	
 
 	//displays the current queue
@@ -61,12 +65,17 @@ public class GUI extends JFrame
 	public void addStartListener(ActionListener al){
 		btnStartSim.addActionListener((al));
 	}
-
-
-
-
 	
 	public GUI(Simulation sim) {
+		setupGui(sim);
+	}
+	
+	public void setupGui(Simulation sim) {
+		this.add(new JButton("Test"));
+		if(panel != null) {
+			this.remove(panel);
+		}
+		
 		//get the desks
 		CheckInHandler[] desks = sim.getCheckInDesks();
 		
@@ -81,7 +90,7 @@ public class GUI extends JFrame
 		GridBagConstraints c = new GridBagConstraints();
 		
 		//create a panel for the input boxes and their labels
-		JPanel panel = new JPanel();
+		panel = new JPanel();
 		//set its layout to GridBagLayout
 		panel.setLayout(new GridBagLayout());
 		
@@ -104,6 +113,7 @@ public class GUI extends JFrame
 		c.gridwidth = 8;
 		//set margins
 		c.insets = new Insets(5,5,2,5);
+		
 		panel.add(title, c);
 		
 		c.gridx = 5;
@@ -120,17 +130,32 @@ public class GUI extends JFrame
 		//add separator to row
 		c.gridy = 1;
 		panel.add(new JSeparator(), c);
+	
+		//add speed slider
+		sldSpeed = new JSlider();
+		sldSpeed.setMaximum(2500);
+		sldSpeed.setMinimum(1);
+		sldSpeed.setMajorTickSpacing(100);
+		sldSpeed.setSnapToTicks(true);
+		sldSpeed.setPaintTicks(true);
+		sldSpeed.setValue((int)Clock.getInstance().getSpeed());
+		c.gridy = 2;
+		c.gridx = 0;
+		c.gridwidth = 2;
+		panel.add(sldSpeed,c);
 		
-		//add contol panel
+		
+		//add start button
+		c.gridwidth = 2;
+		c.gridx = 6;
 		btnStartSim = new JButton("Start");
-		JPanel pnlSimControl = new JPanel();
-		pnlSimControl.add(btnStartSim);
+		c.gridy = 2;
+		panel.add(btnStartSim, c);
 		
+
+		c.gridwidth = 4;
 		c.insets = new Insets(2,5,2,0);
 		
-		c.gridy = 2;
-		panel.add(pnlSimControl, c);
-		c.gridwidth = 4;
 		//add a QueueDisplay
 		c.gridy = 3;
 		c.gridx = 0;
@@ -237,6 +262,7 @@ public class GUI extends JFrame
 		//to avoid weird behaviour on Mac
 		this.setVisible(true);
 	}
+	
 	
 	/**
 	 * Requests a named value for an attribute of a passenger's baggage using
