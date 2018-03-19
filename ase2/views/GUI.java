@@ -1,4 +1,5 @@
 package ase2.views;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -125,16 +126,31 @@ public class GUI extends JFrame
 		JPanel pnlSimControl = new JPanel();
 		pnlSimControl.add(btnStartSim);
 		
+		c.insets = new Insets(2,5,2,0);
+		
 		c.gridy = 2;
 		panel.add(pnlSimControl, c);
-		
+		c.gridwidth = 4;
 		//add a QueueDisplay
 		c.gridy = 3;
+		c.gridx = 0;
 		c.weighty = 0.5;
 		c.fill = GridBagConstraints.BOTH;
 		//create a component to monitor the queue and pass it
 		//a reference to the queue
-		queueDisplay = new QueueDisplay(sim.getQueueHandler());
+		queueDisplay = new QueueDisplay(sim.getQueueHandler(), 0);
+		panel.add(queueDisplay, c);
+		
+		c.insets = new Insets(2,5,2,5);
+		
+		//add a QueueDisplay
+		c.gridy = 3;
+		c.gridx = 4;
+		c.weighty = 0.5;
+		c.fill = GridBagConstraints.BOTH;
+		//create a component to monitor the queue and pass it
+		//a reference to the queue
+		queueDisplay = new QueueDisplay(sim.getQueueHandler(), 1);
 		panel.add(queueDisplay, c);
 		
 		//set margins
@@ -210,7 +226,9 @@ public class GUI extends JFrame
 		sim.registerObserver(fd);
 		
 		this.add(panel);
+		//set size and min size
 		this.setSize(800, 600);
+		this.setMinimumSize(new Dimension(800, 600));
 		
 		//centre window
 		this.setLocationRelativeTo(null);

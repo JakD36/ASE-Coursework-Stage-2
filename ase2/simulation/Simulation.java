@@ -25,13 +25,14 @@ public class Simulation extends Thread implements Subject {
 	ArrayList<CheckInHandler> desks;
 	int passengersAdded = 0;
 	
-	QueueHandler queue;	
+	QueueHandler queues;	
 	
 	ArrayList<Observer> simObservers;
 	
 	/**
 	 * Starts the program by initialising components of MVC pattern, gui, simulation and the controller
 	 */
+	@SuppressWarnings("unused")
 	public static void main(String[] args) {
 		Simulation model = new Simulation();
 		GUI view = new GUI(model);
@@ -46,9 +47,9 @@ public class Simulation extends Thread implements Subject {
 		desks = new ArrayList<CheckInHandler>();
 		
 		//create new desks 
-		queue = new QueueHandler();
-		desks.add(new CheckInHandler(queue)); //copy this to add more checkin desks
-		desks.add(new CheckInHandler(queue)); //copy this to add more checkin desks
+		queues = new QueueHandler(2);
+		desks.add(new CheckInHandler(queues, 0)); //copy this to add more checkin desks
+		desks.add(new CheckInHandler(queues, 1)); //copy this to add more checkin desks
 	}
 
 	public synchronized void run(){
@@ -89,7 +90,7 @@ public class Simulation extends Thread implements Subject {
 			//the amount of evaluations that should have occurred
 			evaluationsPending = (simClock.getCurrentTime()-simClock.getStartTime())/AverageTimeBetweenArrival;
 			
-			double chanceOfArriving = 0.5d/(double)PassengerList.getInstance().getTotalPassengers();
+			double chanceOfArriving = 0.7d/(double)PassengerList.getInstance().getTotalPassengers();
 			
 			while(evaluationsPending > timesEvaluated) {
 				timesEvaluated++;
@@ -97,9 +98,7 @@ public class Simulation extends Thread implements Subject {
 					if( (rand.nextDouble() < chanceOfArriving) ) {
 						try{
 							Passenger passenger = PassengerList.getInstance().getRandomToCheckIn();
-	
-							queue.joinQueue(passenger);
-						
+							queues.joinQueue(passenger);
 							log.writeEvent("Adding " + passenger.getBookingRefCode() + " to Queue at time >> "+simClock.getTimeString()+ ", "+ ++passengersAdded + " added.");
 						}
 						catch(NullPointerException e){
@@ -117,13 +116,13 @@ public class Simulation extends Thread implements Subject {
 		// }
 		
 		//wake up any desks waiting for Passengers
-		synchronized(queue) {
-			queue.close();
+		synchronized(queues) {
+			queues.close();
 			System.out.println(desks.get(0).getStatus());
 			System.out.println(desks.get(1).getStatus());
 			desks.get(0).interrupt();
 			desks.get(1).interrupt();
-			queue.notifyAll();
+			queues.notifyAll();
 		}
 		
 
@@ -176,6 +175,6 @@ public class Simulation extends Thread implements Subject {
 	 * @return the current queue
 	 */
 	public QueueHandler getQueueHandler() {
-		return queue;
+		return queues;
 	}
 }

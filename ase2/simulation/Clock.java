@@ -6,7 +6,7 @@ public class Clock
     long lastRealTime; // Time at last call
     long lastSimTime;
     long startSimTime = 6*3600*1000; // Start the simulation at 6 am
-    long speed = 5000;
+    long speed = 500;
     boolean started = false;
 
     //Static variable keeping the singleton instance of the class
@@ -54,7 +54,7 @@ public class Clock
         long s = (simTime / 1000) % 60 ;
         long min = (simTime / (1000*60)) % 60;
 		long hour = (simTime / (1000*60*60)) % 24;
-		return hour+":"+min+":"+s+":"+ms;
+		return String.format("%02d:%02d:%02d:%03d", hour, min, s, ms);
 	}
     
     public synchronized void setSpeed(long speed){

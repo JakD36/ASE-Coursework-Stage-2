@@ -23,10 +23,11 @@ public class CheckInHandler extends Thread implements Subject {
 	private PassengerList passengers;
 	private FlightList flights;
 	long processTime = 10*60*1000; // time in ms to 5 minutes
-	String status = "started";
+	volatile String status = "started<br/>";
 	long ClosureTime = 12*3600*1000;
 	Clock simClock;
 	double totalFees;
+	int queueId;
 
 	ArrayList<Observer> observers = new ArrayList<Observer>();
 	
@@ -35,7 +36,8 @@ public class CheckInHandler extends Thread implements Subject {
 	 * Instantiates a {@link PassengerList} object, and populates the collections of passengers and flights
 	 * using the loadFlights and loadPassengers methods.
 	 */
-	public CheckInHandler(QueueHandler queue) {
+	public CheckInHandler(QueueHandler queue, int queueId) {
+		this.queueId = queueId;
 		//get the instance of FlightList
 		flights = FlightList.getInstance();
 		passengers = PassengerList.getInstance();
@@ -55,7 +57,7 @@ public class CheckInHandler extends Thread implements Subject {
 			Passenger nextPassenger=null;
 			
 			try{
-				nextPassenger = queue.removeNextPassenger();
+				nextPassenger = queue.removeNextPassenger(queueId);
 				if(nextPassenger != null) {
 					if(checkDetails(nextPassenger.getBookingRefCode(), nextPassenger.getLastName())){
 						
@@ -119,7 +121,7 @@ public class CheckInHandler extends Thread implements Subject {
 	 * @throws	IllegalReferenceCodeException	If the booking reference does match a passenger that is to be checked in or any passenger on the system.
 	 */
 	public synchronized boolean checkDetails(String bookingReference, String lastName) throws IllegalReferenceCodeException{
-		setStatus("checking details of " + bookingReference);
+		setStatus("checking details of " + bookingReference + "<br/>");
 		notifyObservers();
 		Clock simClock = Clock.getInstance();
 		// put the desk to sleep to take into account hte time to process passenger
@@ -149,7 +151,7 @@ public class CheckInHandler extends Thread implements Subject {
 			}
 		}
 		else if(passengers.getCheckedIn().containsKey(bookingReference)){ // Throw an exception if the matching passenger is already checked in
-			setStatus(bookingReference + "Is already checked in!");
+			setStatus(bookingReference + "Is already checked in!<br/><br/>");
 			notifyObservers();
 			throw new IllegalReferenceCodeException(bookingReference+": Is already checked in.");
 			
@@ -175,7 +177,7 @@ public class CheckInHandler extends Thread implements Subject {
 	 * @throws	IllegalReferenceCodeException	If there is no passenger with a matching booking reference code.
 	 */
 	public synchronized float processPassenger(String bookingReference, float[] dimensions, float weight) throws IllegalReferenceCodeException{
-		setStatus("processing passenger " + bookingReference);
+		setStatus("processing passenger " + bookingReference + "<br/>");
 		notifyObservers();
 		Clock simClock = Clock.getInstance();
 		// put the desk to sleep to take into account hte time to process passenger
@@ -304,7 +306,14 @@ public class CheckInHandler extends Thread implements Subject {
 		}
 	}
 	
-	public synchronized String getStatus() {
+	/**
+	 * Get the current status.
+	 * 
+	 * String is immutable, so this doesn't need synchronised.
+	 * 
+	 * @return the current status
+	 */
+	public String getStatus() {
 		return status;
 	}
 	

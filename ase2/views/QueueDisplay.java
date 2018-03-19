@@ -31,9 +31,13 @@ public class QueueDisplay extends JPanel
 	//the QueueHandler this QueueDisplay represents
 	QueueHandler queueHandler;
 	
+	int queueId;
+	
 	private static final long serialVersionUID = 1L;
 	
-	public QueueDisplay(QueueHandler queueHandler) {
+	public QueueDisplay(QueueHandler queueHandler, int queueId) {
+		this.queueId = queueId;
+		
 		queueHandler.registerObserver(this);
 		
 		//set layout
@@ -66,8 +70,10 @@ public class QueueDisplay extends JPanel
 		model = new DefaultTableModel(0, 2);
 		model.setColumnIdentifiers(labels);		
 		
+		
 		//get a copy of the latest list of Passengers
-		LinkedList<Passenger> currentQueue = queueHandler.getCurrentQueue();
+		LinkedList<Passenger> currentQueue = queueHandler.getCurrentQueue(queueId);
+		
 		
 		//add the Passengers to the new model
 		for(Passenger p : currentQueue) {
