@@ -1,8 +1,5 @@
 package ase2.controllers;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.NoSuchElementException;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -11,16 +8,17 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.awt.event.ActionEvent;
 
-import ase2.interfaces.Observer;
-import ase2.interfaces.Subject;
+import ase2.model.FlightList;
+import ase2.model.PassengerList;
+import ase2.simulation.Clock;
 import ase2.simulation.Logging;
 import ase2.simulation.Simulation;
 import ase2.views.GUI;
-import ase2.model.Passenger;
 
 public class Controller{
     
-    private GUI view; 
+    @SuppressWarnings("unused")
+	private GUI view; 
     private Simulation model;
 
     public Controller(GUI view,Simulation model){
@@ -59,6 +57,16 @@ public class Controller{
             if(!model.isAlive()){
                 if(model.getState() != Thread.State.TERMINATED)
                 		model.start();
+                else {
+                	Clock.getInstance().resetClock();
+                	PassengerList.reset();
+                	FlightList.reset();
+                	model = new Simulation();
+                	model.start();
+                	view.setupGui(model);
+                	
+                	view.addStartListener( new StartListener() );
+                }
             }
         }
     }
