@@ -10,6 +10,7 @@ import ase2.model.Flight;
 import ase2.model.FlightList;
 import ase2.model.Passenger;
 import ase2.model.PassengerList;
+import ase2.model.SecurityOfficer;
 import ase2.QueueHandler;
 import ase2.interfaces.Observer;
 import ase2.interfaces.Subject;
@@ -28,6 +29,7 @@ public class Simulation extends Thread implements Subject {
 	QueueHandler queues;	
 	
 	ArrayList<Observer> simObservers;
+	SecurityOfficer officer;
 	
 	/**
 	 * Starts the program by initialising components of MVC pattern, gui, simulation and the controller
@@ -50,13 +52,17 @@ public class Simulation extends Thread implements Subject {
 		queues = new QueueHandler(2);
 		desks.add(new CheckInHandler(queues, 0)); //copy this to add more checkin desks
 		desks.add(new CheckInHandler(queues, 1)); //copy this to add more checkin desks
+		
+		officer = new SecurityOfficer(this);
 	}
 
-	public synchronized void run(){
-		
+	public synchronized void run(){		
 		// Get the clock and start the clock!
 		Clock simClock = Clock.getInstance();
 		simClock.startClock();
+		
+		//start security!
+		officer.start();
 		
 		// Get our log 
 		Logging log = Logging.getInstance();
@@ -74,8 +80,6 @@ public class Simulation extends Thread implements Subject {
 			}
 		}
 
-		// TODO not happy with this to be honest it ends up in busy waiting 
-		// add passengers to the system!
 		//the number of times Passenger arrival has been evaluated
 		//to compare with the correct number based on time
 		long timesEvaluated = 0;
@@ -122,8 +126,10 @@ public class Simulation extends Thread implements Subject {
 			System.out.println(desks.get(1).getStatus());
 			desks.get(0).interrupt();
 			desks.get(1).interrupt();
+			officer.interrupt();
 			queues.notifyAll();
 		}
+		
 		
 
 		try{
@@ -153,10 +159,8 @@ public class Simulation extends Thread implements Subject {
 	}
 
 
-	public CheckInHandler[] getCheckInDesks() {
-		CheckInHandler[] desks = new CheckInHandler[this.desks.size()];
-		this.desks.toArray(desks);
-		
+	public ArrayList<CheckInHandler> getCheckInDesks() {
+
 		return desks;
 	}
 
@@ -176,5 +180,9 @@ public class Simulation extends Thread implements Subject {
 	 */
 	public QueueHandler getQueueHandler() {
 		return queues;
+	}
+	
+	public SecurityOfficer getSecurityOfficer() {
+		return officer;
 	}
 }

@@ -34,7 +34,7 @@ public class DeskDisplay extends JPanel
 		data = new JTextPane();
 		data.setContentType("text/html");
 		data.setEditable(false);
-		data.setText("<html><p align = 'center'>Desk # " + id 
+		data.setText("<html><p align = 'center'>Desk #" + id 
 				+ " is<br/>" + desk.getStatus() + ".</p></html>");
 
 		add(data);
@@ -46,7 +46,7 @@ public class DeskDisplay extends JPanel
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				data.setText("<html><p align = 'center'>Desk # " + id 
+				data.setText("<html><p align = 'center'>Desk #" + id 
 						+ " is<br/>" + desk.getStatus() + ".</p></html>");
 			}
 		});
