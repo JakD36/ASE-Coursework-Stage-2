@@ -45,6 +45,10 @@ public class QueueHandler implements Subject {
 	    	
     	}
     	
+    	//notify security officer
+    	synchronized(this) {
+    		this.notifyAll();
+    	}
     	
     	notifyObservers();
     }
@@ -118,5 +122,35 @@ public class QueueHandler implements Subject {
 		synchronized(queues.get(id)) {
 			return (LinkedList<Passenger>) queues.get(id);
 		}
+	}
+	
+	public Passenger getRandomPassenger() {
+		Passenger p = null;
+		int queueNo;
+		LinkedList<Passenger> q;
+		
+		while(!isEmpty() && p == null) {
+			queueNo = rand.nextInt(queues.size());
+			q = queues.get(queueNo);
+			synchronized (q) {
+				if(q.size() > 0)
+					p = q.get(rand.nextInt(q.size()));
+			}
+		}
+		
+		return p;
+	}
+	
+	public void removePassenger(Passenger p) {
+		//very inefficient
+		for(LinkedList<Passenger> q : queues) {
+			synchronized(q) {
+				q.remove(p);
+			}
+		}
+	}
+	
+	public boolean isClosed() { 
+		return closed;
 	}
 }

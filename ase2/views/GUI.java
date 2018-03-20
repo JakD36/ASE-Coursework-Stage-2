@@ -4,6 +4,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -67,6 +68,18 @@ public class GUI extends JFrame
 	}
 	
 	public GUI(Simulation sim) {
+		//set the title
+		this.setTitle("Queue Check-In Simulation (Experimental)");
+		
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
+		//set size and min size
+		this.setSize(800, 600);
+		this.setMinimumSize(new Dimension(800, 600));
+		
+		//centre window
+		this.setLocationRelativeTo(null);
+		
 		setupGui(sim);
 	}
 	
@@ -77,15 +90,11 @@ public class GUI extends JFrame
 		}
 		
 		//get the desks
-		CheckInHandler[] desks = sim.getCheckInDesks();
+		ArrayList<CheckInHandler> desks = sim.getCheckInDesks();
 		
 		//get the flights
 		flights = sim.getFlights();
 		
-		//set the title
-		this.setTitle("Queue Check-In Simulation");
-		
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		//constraints for adding items to gridbag layout
 		GridBagConstraints c = new GridBagConstraints();
 		
@@ -106,7 +115,7 @@ public class GUI extends JFrame
 		//add a title label
 		//use constraint to span all columns
 		//of the first row
-		JLabel title = new JLabel("Queue Check-In Simulation");
+		JLabel title = new JLabel("Queue Check-In Simulation (Experimental)");
 		title.setHorizontalAlignment(JLabel.CENTER);
 		c.gridx = 0;
 		c.gridy = 0;
@@ -118,7 +127,7 @@ public class GUI extends JFrame
 		
 		c.gridx = 5;
 		c.weightx = 0.1;
-		panel.add(new ClockDisplay(), c);
+		panel.add(new ClockDisplay(sim), c);
 		
 		c.gridx = 0;
 		
@@ -159,7 +168,7 @@ public class GUI extends JFrame
 		//add a QueueDisplay
 		c.gridy = 3;
 		c.gridx = 0;
-		c.weighty = 0.5;
+		c.weighty = 0.8;
 		c.fill = GridBagConstraints.BOTH;
 		//create a component to monitor the queue and pass it
 		//a reference to the queue
@@ -171,7 +180,7 @@ public class GUI extends JFrame
 		//add a QueueDisplay
 		c.gridy = 3;
 		c.gridx = 4;
-		c.weighty = 0.5;
+		c.weighty = 0.8;
 		c.fill = GridBagConstraints.BOTH;
 		//create a component to monitor the queue and pass it
 		//a reference to the queue
@@ -186,10 +195,10 @@ public class GUI extends JFrame
 		c.gridwidth = 4;
 		c.gridx = 0;
 		c.gridy = 4;
-		c.weighty = 0.3;
+		c.weighty = 0.2;
 		c.weightx = 0.5;
 		c.fill = GridBagConstraints.BOTH;
-		DeskDisplay dd = new DeskDisplay(desks[0], 1);
+		DeskDisplay dd = new DeskDisplay(desks.get(0), 1);
 		panel.add(dd, c);
 
 		c.insets = new Insets(2,5,2,5);
@@ -199,7 +208,7 @@ public class GUI extends JFrame
 		c.gridx = 3;
 		c.gridy = 4;
 		c.fill = GridBagConstraints.BOTH;
-		dd = new DeskDisplay(desks[1], 2);
+		dd = new DeskDisplay(desks.get(1), 2);
 		panel.add(dd, c);
 		sim.registerObserver(dd);
 		
@@ -211,7 +220,7 @@ public class GUI extends JFrame
 		c.gridwidth = 1;
 		c.gridx = 0;
 		c.gridy = 5;
-		c.weighty = 0.2;
+		c.weighty = 0.075;
 		c.fill = GridBagConstraints.BOTH;
 		FlightDisplay fd = new FlightDisplay(flights[0]);
 		panel.add(fd, c);
@@ -222,7 +231,7 @@ public class GUI extends JFrame
 		c.gridwidth = 1;
 		c.gridx = 2;
 		c.gridy = 5;
-		c.weighty = 0.2;
+		c.weighty = 0.075;
 		c.fill = GridBagConstraints.BOTH;
 		fd = new FlightDisplay(flights[1]);
 		panel.add(fd, c);
@@ -233,7 +242,7 @@ public class GUI extends JFrame
 		c.gridwidth = 1;
 		c.gridx = 4;
 		c.gridy = 5;
-		c.weighty = 0.2;
+		c.weighty = 0.075;
 		c.fill = GridBagConstraints.BOTH;
 		fd = new FlightDisplay(flights[2]);
 		panel.add(fd, c);
@@ -244,19 +253,25 @@ public class GUI extends JFrame
 		c.gridwidth = 1;
 		c.gridx = 6;
 		c.gridy = 5;
-		c.weighty = 0.2;
+		c.weighty = 0.075;
 		c.fill = GridBagConstraints.BOTH;
 		fd = new FlightDisplay(flights[3]);
 		panel.add(fd, c);
 		sim.registerObserver(fd);
 		
-		this.add(panel);
-		//set size and min size
-		this.setSize(800, 600);
-		this.setMinimumSize(new Dimension(800, 600));
+		//add a security officer display
+		c.insets = new Insets(2,5,2,5);
+		c.gridwidth = 8;
+		c.gridx = 0;
+		c.gridy = 6;
+		c.weighty = 0.075;
+		c.fill = GridBagConstraints.BOTH;
+		SecurityDisplay sd = 
+				new SecurityDisplay(sim.getSecurityOfficer(), 1);
+		panel.add(sd, c);
+		sim.registerObserver(sd);
 		
-		//centre window
-		this.setLocationRelativeTo(null);
+		this.add(panel);
 		
 		//should stay as last line of GUI creation
 		//to avoid weird behaviour on Mac
