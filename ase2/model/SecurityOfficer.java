@@ -8,6 +8,7 @@ import ase2.QueueHandler;
 import ase2.interfaces.Observer;
 import ase2.interfaces.Subject;
 import ase2.simulation.Clock;
+import ase2.simulation.Logging;
 import ase2.simulation.Simulation;
 
 public class SecurityOfficer extends Thread implements Subject {
@@ -42,14 +43,14 @@ public class SecurityOfficer extends Thread implements Subject {
 		//update status String
 		status = "Security officer started.<br/><br/><br/>";
 		notifyObservers();
-		
+		Logging log = Logging.getInstance();
 		while(PassengerList.getInstance().getNotCheckedIn().size() > 0 
 				&& sim.getState() != Thread.State.TERMINATED && !queues.isClosed())
 		{
 			try {
 				observeRandomPassenger();
 			} catch (InterruptedException e) {
-				System.out.println("Security officer interrupted");
+				log.writeEvent("Security officer interrupted");
 			}
 		}
 		

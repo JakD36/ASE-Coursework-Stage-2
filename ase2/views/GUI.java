@@ -4,6 +4,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
+import javax.swing.event.ChangeListener;
 import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
@@ -65,6 +66,9 @@ public class GUI extends JFrame
 
 	public void addStartListener(ActionListener al){
 		btnStartSim.addActionListener((al));
+	}
+	public void addSetSpeedListener(ChangeListener cl){
+		sldSpeed.addChangeListener((cl));
 	}
 	
 	public GUI(Simulation sim) {
@@ -142,7 +146,7 @@ public class GUI extends JFrame
 	
 		//add speed slider
 		sldSpeed = new JSlider();
-		sldSpeed.setMaximum(2500);
+		sldSpeed.setMaximum(5000);
 		sldSpeed.setMinimum(1);
 		sldSpeed.setMajorTickSpacing(100);
 		sldSpeed.setSnapToTicks(true);
@@ -307,7 +311,7 @@ public class GUI extends JFrame
 
 			} catch (NumberFormatException e) {
 				JOptionPane.showMessageDialog(this, 
-						"Invalid " + name + ". Please reenter.",
+						"Invalid " + name + ". Please re-enter.",
 						"Invalid " + name,
 						JOptionPane.ERROR_MESSAGE);
 			} catch (NullPointerException e) {

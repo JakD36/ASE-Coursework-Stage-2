@@ -1,13 +1,19 @@
 package ase2.controllers;
 
-
+import java.util.*;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JSlider;
 
 import java.awt.event.ActionListener;
+
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.io.IOException;
 import java.awt.event.ActionEvent;
 
+import ase2.model.CheckInHandler;
+import ase2.model.Flight;
 import ase2.model.FlightList;
 import ase2.model.PassengerList;
 import ase2.simulation.Clock;
@@ -17,7 +23,7 @@ import ase2.views.GUI;
 
 public class Controller{
     
-    @SuppressWarnings("unused")
+    // @SuppressWarnings("unused")
 	private GUI view; 
     private Simulation model;
 
@@ -26,7 +32,8 @@ public class Controller{
         this.view = view;
         // Specify the listener for the view
         view.addStartListener( new StartListener() );
-        // TODO add update Listener in sprint 3
+		view.addSetSpeedListener( new setSpeedListener());
+		
         
         
         //adding an event on closing the view to ensure the log flush
@@ -41,7 +48,6 @@ public class Controller{
 		        		try {
 							Logging.getInstance().flush();
 						} catch (IOException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 		            System.exit(0);
@@ -55,19 +61,36 @@ public class Controller{
         public void actionPerformed(ActionEvent e){
         	//do not attempt to restart an active sim
             if(!model.isAlive()){
-                if(model.getState() != Thread.State.TERMINATED)
-                		model.start();
+                if(model.getState() != Thread.State.TERMINATED){
+						model.start();
+					}
                 else {
                 	Clock.getInstance().resetClock();
                 	PassengerList.reset();
                 	FlightList.reset();
-                	model = new Simulation();
+					model = new Simulation();
                 	model.start();
                 	view.setupGui(model);
-                	
-                	view.addStartListener( new StartListener() );
+                	// TODO check log is reset!
+					view.addStartListener( new StartListener() );
+					view.addSetSpeedListener( new setSpeedListener());
+					
                 }
             }
         }
-    }
+	}
+	
+	// inner class SetListener responds when user sets time
+	public class setSpeedListener implements ChangeListener {
+		public void stateChanged(ChangeEvent e) {
+			Clock myClock = Clock.getInstance();
+			JSlider mySlider = (JSlider)e.getSource();
+			ArrayList<CheckInHandler> desks = model.getCheckInDesks();
+			for(int n = 0; n < desks.size(); n++){
+				desks.get(n).interrupt();
+			}
+			myClock.setSpeed((long)mySlider.getValue());
+			
+		}
+	}
 }

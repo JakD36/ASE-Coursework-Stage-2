@@ -81,7 +81,6 @@ public class FlightList {
 				flights.put(parts[0], currentFlight);
 			}
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
