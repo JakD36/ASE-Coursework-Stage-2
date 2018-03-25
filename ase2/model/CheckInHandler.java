@@ -22,6 +22,7 @@ public class CheckInHandler extends Thread implements Subject {
 	private PassengerList passengers;
 	private FlightList flights;
 	long processTime = 10*60*1000; // time in ms to 5 minutes
+	final long numberOfCheckInStages = 3; // there are 3 stages to check in, check details, proces passenger, show results so need to split process time between these
 	volatile String status = "started<br/>";
 	long ClosureTime = 12*3600*1000;
 	Clock simClock;
@@ -73,19 +74,13 @@ public class CheckInHandler extends Thread implements Subject {
 						float fee = processPassenger(nextPassenger.getBookingRefCode(), 
 						nextPassenger.getBaggageDimensions(), nextPassenger.getBaggageWeight());
 	
-						log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged £"+fee+" at time "+simClock.getTimeString());
+						log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged Â£"+fee+" at time "+simClock.getTimeString());
 						setStatus("checked in successfully and is charged:<br/> &pound;"+ String.format("%.2f", fee));	
 						totalFees += fee;		
 						
 						notifyObservers();
-						// Put the thread to sleep for a third of the process time to display they are checked in
-						try { 
-							long sleepTime = (processTime/3)/simClock.getSpeed();
-							Thread.sleep(sleepTime);
-						} catch (InterruptedException i) {
-							System.out.println("Desk was interupted from displaying fee");
-						}
-						
+						long sleepTil = simClock.getCurrentTime()+processTime/numberOfCheckInStages;
+						threadSleep(sleepTil);
 					}
 					else{
 						log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in failed at time" + simClock.getTimeString());
@@ -96,7 +91,7 @@ public class CheckInHandler extends Thread implements Subject {
 			}catch(NoSuchElementException e){
 				setStatus("Theres no one in the queue to process!");
 				notifyObservers();
-				System.out.println("Theres no one in the queue to process!");
+				// System.out.println("Theres no one in the queue to process!");
 			}catch(DepartedFlightException dfe) {
 				log.writeEvent(String.format("Passenger %s %s has arrived too late", nextPassenger.getFirstName(),nextPassenger.getLastName()));
 				setStatus(String.format("Passenger %s %s has arrived too late", nextPassenger.getFirstName(),nextPassenger.getLastName()));
@@ -110,6 +105,27 @@ public class CheckInHandler extends Thread implements Subject {
 		notifyObservers();
 	}
 	
+	synchronized private void threadSleep(long sleepTil){
+		// sim is at 6
+		// process done at 6:05
+		// 5/clockspeed is sleep time! SO!
+		// if we take the difference in time from when process should be done and time now divided by speed of sim
+		// we get the actual time for this speed! 
+		Logging log = Logging.getInstance();
+		Clock myClock = Clock.getInstance();
+		long sleepTime = (sleepTil-myClock.getCurrentTime())/simClock.getSpeed();
+		try { 
+			Thread.sleep(sleepTime);
+		} catch (InterruptedException e) {
+			// log.writeEvent("Desk was interupted from processing passenger");
+			if(myClock.getCurrentTime()<sleepTil){
+				threadSleep(sleepTil);
+			}
+		}
+
+	}
+
+
 	/**
 	 * Checks the details of the passenger who wants to check in.
 	 * Checks the passengers name to the provided booking reference. As well as checking to make sure that
@@ -125,14 +141,10 @@ public class CheckInHandler extends Thread implements Subject {
 		notifyObservers();
 		Clock simClock = Clock.getInstance();
 		// put the desk to sleep to take into account hte time to process passenger
-		try { 
-			long sleepTime = (processTime/3)/simClock.getSpeed();
-			Thread.sleep(sleepTime);
-			
-		} catch (InterruptedException e) {
-			System.out.println("Desk was interupted from processing passenger");
-		}
-	
+		Logging log = Logging.getInstance();
+		
+		long sleepTil = simClock.getCurrentTime()+processTime/numberOfCheckInStages;
+		threadSleep(sleepTil);
 
 		if( passengers.getNotCheckedIn().containsKey(bookingReference) ){	// Check that the booking reference provided matches, a passenger to be checked in
 			//Strings should compared with .equals in Java
@@ -181,13 +193,10 @@ public class CheckInHandler extends Thread implements Subject {
 		notifyObservers();
 		Clock simClock = Clock.getInstance();
 		// put the desk to sleep to take into account hte time to process passenger
+		Logging log = Logging.getInstance();
 		
-		try { 
-			long sleepTime = (processTime/3)/simClock.getSpeed();
-			Thread.sleep(sleepTime);
-		} catch (InterruptedException e) {
-			System.out.println("Desk was interupted from processing passenger");
-		}
+		long sleepTil = simClock.getCurrentTime()+processTime/numberOfCheckInStages;
+		threadSleep(sleepTil);
 		
 		float fee;	// Fee due from passenger, calculated from the weight Fee, volume fee and the multiplier for the passengers flight
 		float weightFee = 0f, volFee = 0f;

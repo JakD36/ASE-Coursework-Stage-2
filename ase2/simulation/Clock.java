@@ -33,7 +33,6 @@ public class Clock
     	lastRealTime = System.currentTimeMillis();
         lastSimTime = startSimTime;
         started = true;
-        System.out.println("reset");
     }
     
     public synchronized long getCurrentTime(){

@@ -9,6 +9,7 @@ import ase2.interfaces.Observer;
 import ase2.interfaces.Subject;
 import ase2.model.Passenger;
 import ase2.model.PassengerList;
+import ase2.simulation.Logging;
 
 public class QueueHandler implements Subject {
     private ArrayList<LinkedList<Passenger>> queues;
@@ -69,12 +70,14 @@ public class QueueHandler implements Subject {
     }
 
     public Passenger removeNextPassenger(int queueId) throws NoSuchElementException{
-    	Passenger removed = null;
+		Passenger removed = null;
+		Logging log = Logging.getInstance();
     	//sync on the specific queue
     	synchronized(queues.get(queueId)) {
+			
 	    	if(PassengerList.getInstance().getNoNotQueued() > 0) {
-		        while(queues.get(queueId).size() < 1 && !closed){ // TODO Discuss if this is correct way to do this
-		       		try{queues.get(queueId).wait();}catch(InterruptedException e){System.out.println("Remove next passenger: Thread was interupted");}
+		        while(queues.get(queueId).size() < 1 && !closed){ 
+		       		try{queues.get(queueId).wait();}catch(InterruptedException e){log.writeEvent("Remove next passenger: Thread was interupted");}
 		        }  
 	    	}
 	    	//get and remove Passenger

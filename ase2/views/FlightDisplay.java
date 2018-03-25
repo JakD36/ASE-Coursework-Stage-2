@@ -39,11 +39,10 @@ public class FlightDisplay extends JPanel
 					+ flight.getPassengersBookedAboard() + "<br/>"
 					+ "Hold:<br/>"
 					+ String.format("%.2f", flight.getTotalBaggageWeight()) + "kg/"
-					+ String.format("%.2f", flight.getTotalBaggageWeight()) + "kg<br/>"
+					+ String.format("%.2f", flight.getMaxBaggageWeight()) + "kg<br/>"
 					+ String.format("%.2f", flight.getTotalBaggageVolume()/100) + "m<sup>2</sup>/"
-					+ String.format("%.2f", flight.getMaxBaggageVolume()/100) + "m<sup>2</sup><br/>"
+					+ String.format("%.2f", flight.getMaxBaggageVolume()/100) + "m<sup>2</sup><br/>" // TODO Why is this divided by 100!?
 					+ "<font color='white'>---------------------------------</font></p></html>");
-		
 		add(data);
 	}
 
@@ -58,10 +57,10 @@ public class FlightDisplay extends JPanel
 							+ flight.getPassengersBookedAboard() + "<br/>"
 							+ "Hold:<br/>"
 							+ String.format("%.2f", flight.getTotalBaggageWeight()) + "kg/"
-							+ String.format("%.2f", flight.getTotalBaggageWeight()) + "kg<br/>"
+							+ String.format("%.2f", flight.getMaxBaggageWeight()) + "kg<br/>"
 							+ String.format("%.2f", flight.getTotalBaggageVolume()/100) + "m<sup>2</sup>/"
 							+ String.format("%.2f", flight.getMaxBaggageVolume()/100) + "m<sup>2</sup><br/>"
-							+ "<font color='white'>---------------------------------</font></p></html>");
+							+ "<font color='white'>---------------------------------</font></p></html>");	
 			}
 		});
 	}
