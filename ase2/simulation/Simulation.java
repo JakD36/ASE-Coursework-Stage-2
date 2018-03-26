@@ -2,6 +2,7 @@ package ase2.simulation;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Random;
 
@@ -56,7 +57,7 @@ public class Simulation extends Thread implements Subject {
 		officer = new SecurityOfficer(this);
 	}
 
-	public synchronized void run(){		
+	public synchronized void run(){	
 		// Get the clock and start the clock!
 		Clock simClock = Clock.getInstance();
 		simClock.startClock();
@@ -74,19 +75,19 @@ public class Simulation extends Thread implements Subject {
 		// Start each of the check in desk threads
 		for (CheckInHandler desk : desks) {
 			desk.start(); 
-			long closeTime = desk.getClosureTime();
-			if(closeTime > simEndTime){
-				simEndTime = closeTime;
-			}
 		}
+		
+		simEndTime = FlightList.getInstance().getLastDepartureTime();
 
 		//the number of times Passenger arrival has been evaluated
 		//to compare with the correct number based on time
 		long timesEvaluated = 0;
-		//the amount of evaluations that should have occured
+		//the amount of evaluations that should have occurred
 		long evaluationsPending = 0;
 		
 		while(simClock.getCurrentTime() < simEndTime) {
+			//check which flights have departed
+			FlightList.getInstance().checkFlightDepartures();
 			
 			// Randomly decide if passengers arrive at airport	
 			long AverageTimeBetweenArrival = 2*60*1000; // 2 min on average between arrivals
@@ -112,10 +113,10 @@ public class Simulation extends Thread implements Subject {
 				}
 			}
 		}
+		//check which flights have departed
+		FlightList.getInstance().checkFlightDepartures();
 		
 		log.writeEvent("Simulation complete: " + passengersAdded + " added.");
-		
-		
 		
 		//wake up any desks waiting for Passengers
 		synchronized(queues) {
@@ -135,7 +136,6 @@ public class Simulation extends Thread implements Subject {
 		}catch(IOException e){}
 	}
 	
-
 	@Override
 	public void registerObserver(Observer obs) {
 		this.simObservers.add(obs);

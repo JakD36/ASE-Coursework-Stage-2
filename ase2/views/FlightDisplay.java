@@ -10,6 +10,8 @@ import javax.swing.border.EtchedBorder;
 
 import ase2.interfaces.Observer;
 import ase2.model.Flight;
+import ase2.simulation.Clock;
+import ase2.simulation.Simulation;
 
 public class FlightDisplay extends JPanel 
 	implements Observer {
@@ -17,8 +19,10 @@ public class FlightDisplay extends JPanel
 	private static final long serialVersionUID = 1L;
 	Flight flight;
 	String name;
+	Simulation sim;
 	
-	public FlightDisplay(Flight flight) {
+	public FlightDisplay(Flight flight, Simulation sim) {
+		this.sim = sim;
 		this.flight = flight;
 		name = flight.getFlightCode() + " " + flight.getDestination();
 				
@@ -40,8 +44,8 @@ public class FlightDisplay extends JPanel
 					+ "Hold:<br/>"
 					+ String.format("%.2f", flight.getTotalBaggageWeight()) + "kg/"
 					+ String.format("%.2f", flight.getMaxBaggageWeight()) + "kg<br/>"
-					+ String.format("%.2f", flight.getTotalBaggageVolume()/100) + "m<sup>2</sup>/"
-					+ String.format("%.2f", flight.getMaxBaggageVolume()/100) + "m<sup>2</sup><br/>" // TODO Why is this divided by 100!?
+					+ String.format("%.2f", flight.getTotalBaggageVolume()) + "m<sup>2</sup>/"
+					+ String.format("%.2f", flight.getMaxBaggageVolume()) + "m<sup>2</sup><br/>"
 					+ "<font color='white'>---------------------------------</font></p></html>");
 		add(data);
 	}
@@ -52,15 +56,21 @@ public class FlightDisplay extends JPanel
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
+				String statusString;
+					//check if the Flight has departed and set the appropriate message
+					if(!flight.hasDeparted(Clock.getInstance().getCurrentTime()) && sim.getState() != Thread.State.TERMINATED)
+						statusString = "<font color='white'>---------------------------------</font></p></html>";
+					else
+						statusString = "<font color='black'>------------Departed-------------</font></p></html>";
 				data.setText("<html><p align = 'center'>" + name + "<br/>"
 						+ flight.getTotalPassengersCheckedIn() + " checked in of "
 							+ flight.getPassengersBookedAboard() + "<br/>"
 							+ "Hold:<br/>"
 							+ String.format("%.2f", flight.getTotalBaggageWeight()) + "kg/"
 							+ String.format("%.2f", flight.getMaxBaggageWeight()) + "kg<br/>"
-							+ String.format("%.2f", flight.getTotalBaggageVolume()/100) + "m<sup>2</sup>/"
-							+ String.format("%.2f", flight.getMaxBaggageVolume()/100) + "m<sup>2</sup><br/>"
-							+ "<font color='white'>---------------------------------</font></p></html>");	
+							+ String.format("%.2f", flight.getTotalBaggageVolume()) + "m<sup>2</sup>/"
+							+ String.format("%.2f", flight.getMaxBaggageVolume()) + "m<sup>2</sup><br/>"
+							+ statusString + "</p></html>");	
 			}
 		});
 	}

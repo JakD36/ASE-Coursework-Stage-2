@@ -146,7 +146,7 @@ public class GUI extends JFrame
 	
 		//add speed slider
 		sldSpeed = new JSlider();
-		sldSpeed.setMaximum(5000);
+		sldSpeed.setMaximum(4000);
 		sldSpeed.setMinimum(1);
 		sldSpeed.setMajorTickSpacing(100);
 		sldSpeed.setSnapToTicks(true);
@@ -226,7 +226,7 @@ public class GUI extends JFrame
 		c.gridy = 5;
 		c.weighty = 0.075;
 		c.fill = GridBagConstraints.BOTH;
-		FlightDisplay fd = new FlightDisplay(flights[0]);
+		FlightDisplay fd = new FlightDisplay(flights[0], sim);
 		panel.add(fd, c);
 		sim.registerObserver(fd);
 		
@@ -237,7 +237,7 @@ public class GUI extends JFrame
 		c.gridy = 5;
 		c.weighty = 0.075;
 		c.fill = GridBagConstraints.BOTH;
-		fd = new FlightDisplay(flights[1]);
+		fd = new FlightDisplay(flights[1], sim);
 		panel.add(fd, c);
 		sim.registerObserver(fd);
 		
@@ -248,7 +248,7 @@ public class GUI extends JFrame
 		c.gridy = 5;
 		c.weighty = 0.075;
 		c.fill = GridBagConstraints.BOTH;
-		fd = new FlightDisplay(flights[2]);
+		fd = new FlightDisplay(flights[2], sim);
 		panel.add(fd, c);
 		sim.registerObserver(fd);
 		
@@ -259,7 +259,7 @@ public class GUI extends JFrame
 		c.gridy = 5;
 		c.weighty = 0.075;
 		c.fill = GridBagConstraints.BOTH;
-		fd = new FlightDisplay(flights[3]);
+		fd = new FlightDisplay(flights[3], sim);
 		panel.add(fd, c);
 		sim.registerObserver(fd);
 		
