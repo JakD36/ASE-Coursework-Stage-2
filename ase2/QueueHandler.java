@@ -11,13 +11,19 @@ import ase2.model.Passenger;
 import ase2.model.PassengerList;
 import ase2.simulation.Logging;
 
+
 public class QueueHandler implements Subject {
     private ArrayList<LinkedList<Passenger>> queues;
     private boolean closed; 
     Random rand = new Random();
     
 	ArrayList<Observer> observers = new ArrayList<Observer>();
-    
+	
+	/**
+	 * Constructs the queue handler, creating the number of queues specified.
+	 * 
+	 * @param number of queues to be added to system.
+	 */
     public QueueHandler(int numberOfQueues){
         queues = new ArrayList<LinkedList<Passenger>>();
         closed = false;
@@ -28,7 +34,9 @@ public class QueueHandler implements Subject {
     }
 
     /**
-     * Adds Passenger to the shortest queue
+     * Adds Passenger to the shortest queue.
+	 * Notifies consumers of queue that passengers have been added if they have been waiting 
+	 * 
      * @param newPassenger the Passenger to add
      */
      public void joinQueue(Passenger newPassenger){ 	
@@ -46,7 +54,7 @@ public class QueueHandler implements Subject {
 	    	
     	}
     	
-    	//notify security officer
+    	//notify security officer and CheckInHandler that new passenger has been added
     	synchronized(this) {
     		this.notifyAll();
     	}
@@ -56,19 +64,28 @@ public class QueueHandler implements Subject {
     
     /**
      * Checks all queues to see if they have Passengers.
+	 * 
      * @return whether the queues are empty
      */
     public boolean isEmpty() {
 		boolean empty = true;
 
-		for(LinkedList<Passenger> queue : queues) {
-    		if(queue.size() > 0)
-    			empty = false;
+		for(LinkedList<Passenger> queue : queues) { // loop through each queue to see if its empty.
+			if(!queue.isEmpty()){
+				empty = false;
+			}
     	}
-		
 		return empty;
     }
 
+	/**
+	 * Takes the passenger at the front of the queue and passes them on.
+	 * 
+	 * If there are no passengers in the queue sets thread to wait to be notified of new passengers added.
+	 * 
+	 * @param the id of the queue to remove a passenger from!
+	 * @return the passenger at the front of the queue to be given to the check in desk.
+	 */
     public Passenger removeNextPassenger(int queueId) throws NoSuchElementException{
 		Passenger removed = null;
 		Logging log = Logging.getInstance();
@@ -77,7 +94,9 @@ public class QueueHandler implements Subject {
 			
 	    	if(PassengerList.getInstance().getNoNotQueued() > 0) {
 		        while(queues.get(queueId).size() < 1 && !closed){ 
-		       		try{queues.get(queueId).wait();}catch(InterruptedException e){log.writeEvent("Remove next passenger: Thread was interupted");}
+		       		try{
+						   queues.get(queueId).wait();
+						}catch(InterruptedException e){log.writeEvent("Remove next passenger: Thread was interupted");}
 		        }  
 	    	}
 	    	//get and remove Passenger
@@ -88,6 +107,9 @@ public class QueueHandler implements Subject {
     	return removed;
     }
 
+	/**
+	 * Closes the desk while notifying observers that it is closing.
+	 */
     synchronized public void close(){
     	notifyObservers();
         closed = true;

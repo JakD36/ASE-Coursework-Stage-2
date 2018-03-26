@@ -43,8 +43,6 @@ public class Simulation extends Thread implements Subject {
 	}
 	
 	public Simulation() {
-		
-		
 		//create new lists to accommodate for observers and checkin desks
 		simObservers = new ArrayList<Observer>();
 		desks = new ArrayList<CheckInHandler>();
