@@ -9,14 +9,12 @@ import java.awt.event.ActionListener;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import java.io.IOException;
 import java.awt.event.ActionEvent;
 
 import ase2.model.CheckInHandler;
 import ase2.model.FlightList;
 import ase2.model.PassengerList;
 import ase2.simulation.Clock;
-import ase2.simulation.Logging;
 import ase2.simulation.Simulation;
 import ase2.views.GUI;
 
