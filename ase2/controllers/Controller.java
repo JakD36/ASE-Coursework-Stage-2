@@ -53,11 +53,7 @@ public class Controller{
 		            "Are you sure to quit the simulation?", "Really Closing?", 
 		            JOptionPane.YES_NO_OPTION,
 		            JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION){
-		        		try {
-							Logging.getInstance().flush();
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
+
 		            System.exit(0);
 		        }
 		    }
