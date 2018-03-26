@@ -2,7 +2,6 @@ package ase2.model;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
-import ase2.QueueHandler;
 import ase2.exceptions.DepartedFlightException;
 import ase2.exceptions.IllegalReferenceCodeException;
 import ase2.interfaces.Observer;
@@ -21,7 +20,7 @@ public class CheckInHandler extends Thread implements Subject {
 	private QueueHandler queue;
 	private PassengerList passengers;
 	private FlightList flights;
-	long processTime = 10*Clock.SECONDSINMINUTE*Clock.MSINSECOND; // time in ms to 5 minutes
+	long processTime = 10*Clock.SECONDS_IN_MINUTE*Clock.MS_IN_SECOND; // time in ms to 5 minutes
 	final long numberOfCheckInStages = 3; // there are 3 stages to check in, check details, proces passenger, show results so need to split process time between these
 	volatile String status = "started<br/>";
 	long ClosureTime = FlightList.getInstance().getLastDepartureTime();
@@ -60,8 +59,9 @@ public class CheckInHandler extends Thread implements Subject {
 	 */
 	public void run(){
 		//tweaked so GUI can update that the desk is closed
-		while(simClock.getCurrentTime()<ClosureTime // While time hasnt passed the desks closure time and there are still passengers left to enter the system
-				&& PassengerList.getInstance().getNotCheckedIn().size() > 0){// ){
+		// While time hasnt passed the desks closure time and there are still passengers left to enter the system
+		while(simClock.getCurrentTime()<ClosureTime
+				&& PassengerList.getInstance().getNoNotQueued() > 0){// ){
 
 			Logging log = Logging.getInstance();
 			
@@ -161,8 +161,7 @@ public class CheckInHandler extends Thread implements Subject {
 		notifyObservers();
 		Clock simClock = Clock.getInstance();
 		// put the desk to sleep to take into account hte time to process passenger
-		Logging log = Logging.getInstance();
-		
+
 
 		// Put the thread to sleep to take into account the time to process the stage of check in
 		long sleepTil = simClock.getCurrentTime()+processTime/numberOfCheckInStages;
@@ -215,8 +214,6 @@ public class CheckInHandler extends Thread implements Subject {
 		notifyObservers();
 		Clock simClock = Clock.getInstance();
 		// put the desk to sleep to take into account hte time to process passenger
-		Logging log = Logging.getInstance();
-		
 
 		// Put the thread to sleep to take into account the time to process the stage of check in
 		long sleepTil = simClock.getCurrentTime()+processTime/numberOfCheckInStages;

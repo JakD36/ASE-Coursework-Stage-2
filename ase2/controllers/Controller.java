@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.awt.event.ActionEvent;
 
 import ase2.model.CheckInHandler;
-import ase2.model.Flight;
 import ase2.model.FlightList;
 import ase2.model.PassengerList;
 import ase2.simulation.Clock;

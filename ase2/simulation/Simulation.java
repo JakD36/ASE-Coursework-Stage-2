@@ -2,7 +2,6 @@ package ase2.simulation;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Random;
 
@@ -11,8 +10,8 @@ import ase2.model.Flight;
 import ase2.model.FlightList;
 import ase2.model.Passenger;
 import ase2.model.PassengerList;
+import ase2.model.QueueHandler;
 import ase2.model.SecurityOfficer;
-import ase2.QueueHandler;
 import ase2.interfaces.Observer;
 import ase2.interfaces.Subject;
 import ase2.simulation.Clock;
@@ -88,7 +87,7 @@ public class Simulation extends Thread implements Subject {
 			FlightList.getInstance().checkFlightDepartures();
 			
 			// Randomly decide if passengers arrive at airport	
-			long AverageTimeBetweenArrival = 2*Clock.MINUTE*Clock.SECOND; // 2 min on average between arrivals
+			long AverageTimeBetweenArrival = 2*Clock.SECONDS_IN_MINUTE*Clock.MS_IN_SECOND; // 2 min on average between arrivals
 			
 			//the amount of evaluations that should have occurred
 			evaluationsPending = (simClock.getCurrentTime()-simClock.getStartTime())/AverageTimeBetweenArrival;

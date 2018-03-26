@@ -3,14 +3,14 @@ package ase2.simulation;
 public class Clock 
 {
     //ms in a second
-    public static final long MSINSECOND = 1000;
+    public static final long MS_IN_SECOND = 1000;
     //seconds in am minute
-    public static final long SECONDSINMINUTE = 60;
-    public static final long MINUTESINHOUR = 60;
+    public static final long SECONDS_IN_MINUTE = 60;
+    public static final long MINUTES_IN_HOUR = 60;
     
     long lastRealTime; // Time at last call
     long lastSimTime;
-    long startSimTime = 6*MINUTESINHOUR*SECONDSINMINUTE*MSINSECOND; // Start the simulation at 6 am
+    long startSimTime = 6*MINUTES_IN_HOUR*SECONDS_IN_MINUTE*MS_IN_SECOND; // Start the simulation at 6 am
     volatile long speed = 250; //may be updated across threads
     boolean started = false;
     
@@ -91,10 +91,10 @@ public class Clock
      */
 	public String getTimeString(){
         long simTime = getCurrentTime();
-		long ms = simTime%MSINSECOND;
-        long s = (simTime / MSINSECOND) % SECONDSINMINUTE ;
-        long min = (simTime / (MSINSECOND*SECONDSINMINUTE)) % MINUTESINHOUR;
-		long hour = (simTime / (MSINSECOND*SECONDSINMINUTEI*MINUTESINHOUR)) % 24;
+		long ms = simTime%MS_IN_SECOND;
+        long s = (simTime / MS_IN_SECOND) % SECONDS_IN_MINUTE ;
+        long min = (simTime / (MS_IN_SECOND*SECONDS_IN_MINUTE)) % MINUTES_IN_HOUR;
+		long hour = (simTime / (MS_IN_SECOND*SECONDS_IN_MINUTE*MINUTES_IN_HOUR)) % 24;
 		return String.format("%02d:%02d:%02d:%03d", hour, min, s, ms);
 	}
     
