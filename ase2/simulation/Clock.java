@@ -5,9 +5,16 @@ public class Clock
     
     long lastRealTime; // Time at last call
     long lastSimTime;
-    long startSimTime = 6*3600*1000; // Start the simulation at 6 am
-    long speed = 250;
+    long startSimTime = 6*HOUR*SECOND; // Start the simulation at 6 am
+    volatile long speed = 250; //may be updated across threads
     boolean started = false;
+    
+    //ms in a second
+    public static final long SECOND = 1000;
+    //seconds in an hour
+    public static final long HOUR = 3600;
+    //seconds in am minute
+    public static final long MINUTE = 60;
 
     //Static variable keeping the singleton instance of the class
 	static private Clock instance;
@@ -35,7 +42,7 @@ public class Clock
         started = true;
     }
     
-    public synchronized long getCurrentTime(){
+    public long getCurrentTime(){
         if(started){
             long currentRealTime = System.currentTimeMillis();
             long elapsedRealTime = (currentRealTime - lastRealTime); // elapsed time from last call
@@ -50,20 +57,20 @@ public class Clock
             return startSimTime;
         }
     }
-    public synchronized long getSpeed(){
+    public long getSpeed(){
         return speed;
     }
 
-	public synchronized String getTimeString(){
+	public String getTimeString(){
         long simTime = getCurrentTime();
-		long ms = simTime%1000;
-        long s = (simTime / 1000) % 60 ;
-        long min = (simTime / (1000*60)) % 60;
-		long hour = (simTime / (1000*60*60)) % 24;
+		long ms = simTime%SECOND;
+        long s = (simTime / SECOND) % MINUTE ;
+        long min = (simTime / (SECOND*MINUTE)) % MINUTE;
+		long hour = (simTime / (SECOND*MINUTE*MINUTE)) % 24;
 		return String.format("%02d:%02d:%02d:%03d", hour, min, s, ms);
 	}
     
-    public synchronized void setSpeed(long speed){
+    public void setSpeed(long speed){
         getCurrentTime(); // calculates the simulation time for the old speed!
         // So now when we change the speed below its only applied for the future!
         this.speed = speed;

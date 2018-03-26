@@ -12,9 +12,9 @@ import ase2.simulation.Logging;
 import ase2.simulation.Simulation;
 
 public class SecurityOfficer extends Thread implements Subject {
-	long observeTime = 60 * 1000 * 2; //the time taken to observe a passenger
-	long questionTime = 60 * 1000 * 10; //the time taken to interrogate a passenger
-	long detainTime = 60 * 1000 * 7; //the time taken to detain a passenger
+	long observeTime = 60 * Clock.SECOND * 2; //the time taken to observe a passenger
+	long questionTime = 60 * Clock.SECOND * 10; //the time taken to interrogate a passenger
+	long detainTime = 60 * Clock.SECOND * 7; //the time taken to detain a passenger
 	Clock clock = Clock.getInstance(); //get the clock singleton instance
 	QueueHandler queues; //the QueueHandler 
 	HashSet<Passenger> alreadyObserved = new HashSet<Passenger>(); //to ensure Passengers aren't observed twice
@@ -143,6 +143,9 @@ public class SecurityOfficer extends Thread implements Subject {
 	private void interrogatePassenger(Passenger p) throws InterruptedException {
 		//update status String
 		status = "Interrogating " + p.getBookingRefCode() + ".<br/><br/><br/>";
+		
+		//update log
+		Logging.getInstance().writeEvent("Interrogating " + p.getBookingRefCode());
 
 		//notify observers of status change
 		notifyObservers();
@@ -153,14 +156,20 @@ public class SecurityOfficer extends Thread implements Subject {
 		float seized = 0;
 		
 		//was anything seized? 1 in 2 chance
+		//if so detain Passenger
 		if(rand.nextInt(2) == 1) {
-			//how much was seized?
+			//how much was seized? Between 0 and 1000
 			seized = rand.nextFloat() * 1000;
 			
 			//update status String
 			status = "Seized &pound;" + String.format("%.2f", seized) + " of contraband.<br/>"
 					+ "Detaining " + p.getBookingRefCode() + " " + p.getFirstName()
 					+ " " + p.getLastName() + ".<br/><br/>";
+			
+			//update log
+			Logging.getInstance().writeEvent("Seized £" + String.format("%.2f", seized) + " of contraband."
+					+ "Detaining " + p.getBookingRefCode() + " " + p.getFirstName()
+					+ " " + p.getLastName());
 			
 			//add to totals
 			totalSeized += seized;

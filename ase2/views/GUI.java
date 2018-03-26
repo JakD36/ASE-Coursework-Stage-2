@@ -64,16 +64,29 @@ public class GUI extends JFrame
 	//flights
 	Flight[] flights;
 
+	/**
+	 * Add listener for start button
+	 * @param al the ActionListener 
+	 */
 	public void addStartListener(ActionListener al){
 		btnStartSim.addActionListener((al));
 	}
+	
+	/**
+	 * Add listener for speed slider
+	 * @param cl the ChangeListener
+	 */
 	public void addSetSpeedListener(ChangeListener cl){
 		sldSpeed.addChangeListener((cl));
 	}
 	
+	/**
+	 * Instantiate GUI frame
+	 * @param sim the Simulation represented
+	 */
 	public GUI(Simulation sim) {
 		//set the title
-		this.setTitle("Queue Check-In Simulation (Experimental)");
+		this.setTitle("Queue Check-In Simulation");
 		
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
@@ -84,9 +97,14 @@ public class GUI extends JFrame
 		//centre window
 		this.setLocationRelativeTo(null);
 		
+		//create the panel
 		setupGui(sim);
 	}
 	
+	/**
+	 * Creates or replaces the display panel
+	 * @param sim the Simulation represented
+	 */
 	public void setupGui(Simulation sim) {
 		this.add(new JButton("Test"));
 		if(panel != null) {
@@ -119,10 +137,13 @@ public class GUI extends JFrame
 		//add a title label
 		//use constraint to span all columns
 		//of the first row
-		JLabel title = new JLabel("Queue Check-In Simulation (Experimental)");
+		JLabel title = new JLabel("Queue Check-In Simulation");
 		title.setHorizontalAlignment(JLabel.CENTER);
+		//set x grid position to 0
 		c.gridx = 0;
+		//set y grid position to 0
 		c.gridy = 0;
+		//set component width to full row
 		c.gridwidth = 8;
 		//set margins
 		c.insets = new Insets(5,5,2,5);
