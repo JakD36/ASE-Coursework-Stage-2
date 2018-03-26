@@ -80,7 +80,7 @@ public class Logging
 			    writer.write(event_str.toString());
 			    writer.close();
 			}
-		    
+		    this.counter = 1;
 		    this.events.clear();
 		}
 	
