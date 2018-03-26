@@ -21,7 +21,7 @@ public class CheckInHandler extends Thread implements Subject {
 	private QueueHandler queue;
 	private PassengerList passengers;
 	private FlightList flights;
-	long processTime = 10*60*1000; // time in ms to 5 minutes
+	long processTime = 10*Clock.MINUTE*Clock.SECOND; // time in ms to 5 minutes
 	final long numberOfCheckInStages = 3; // there are 3 stages to check in, check details, proces passenger, show results so need to split process time between these
 	volatile String status = "started<br/>";
 	long ClosureTime = FlightList.getInstance().getLastDepartureTime();

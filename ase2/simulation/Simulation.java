@@ -90,7 +90,7 @@ public class Simulation extends Thread implements Subject {
 			FlightList.getInstance().checkFlightDepartures();
 			
 			// Randomly decide if passengers arrive at airport	
-			long AverageTimeBetweenArrival = 2*60*1000; // 2 min on average between arrivals
+			long AverageTimeBetweenArrival = 2*Clock.MINUTE*Clock.SECOND; // 2 min on average between arrivals
 			
 			//the amount of evaluations that should have occurred
 			evaluationsPending = (simClock.getCurrentTime()-simClock.getStartTime())/AverageTimeBetweenArrival;
@@ -113,8 +113,10 @@ public class Simulation extends Thread implements Subject {
 				}
 			}
 		}
-		//check which flights have departed
-		FlightList.getInstance().checkFlightDepartures();
+		//notify GUI of departures
+		for(Flight flight : getFlights()) {
+			flight.notifyObservers();
+		}
 		
 		log.writeEvent("Simulation complete: " + passengersAdded + " added.");
 		
@@ -141,13 +143,16 @@ public class Simulation extends Thread implements Subject {
 		this.simObservers.add(obs);
 		
 	}
-
+	
 	@Override
 	public void removeObserver(Observer obs) {
 		this.simObservers.remove(obs);
 		
 	}
 
+	/**
+	 * Inform all Observers of update
+	 */
 	@Override
 	public void notifyObservers() {
 		for (Observer obs : this.simObservers)
