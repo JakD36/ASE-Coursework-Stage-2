@@ -66,8 +66,9 @@ public class Controller{
 					}
                 else {
                 	Clock.getInstance().resetClock();
-                	PassengerList.reset();
                 	FlightList.reset();
+                	PassengerList.reset();
+                	
 					model = new Simulation();
                 	model.start();
                 	view.setupGui(model);
