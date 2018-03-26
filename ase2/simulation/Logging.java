@@ -51,7 +51,7 @@ public class Logging
 	
 	/*
 	 * Returns the current number of recorded events
-	 * 
+	 * TODO this isnt javadoc style
 	 * Return: number of the current events
 	 */
 	public int getNumberOfEvents()

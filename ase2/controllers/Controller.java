@@ -27,6 +27,15 @@ public class Controller{
 	private GUI view; 
     private Simulation model;
 
+
+	/**
+	 * Construct the controller for the MVC design pattern used for the model(simulation) and view(GUI).
+	 * 
+	 * Sets the listeners on the start button, the change in simulation speed time and for windows close.
+	 * 
+	 * @param the view for the MVC pattern.
+	 * @param the model of the MVC pattern.
+	 */
     public Controller(GUI view,Simulation model){
         this.model = model;
         this.view = view;
@@ -56,23 +65,30 @@ public class Controller{
 		});
     }
 
-    // inner class SetListener responds when user sets time
+    /**
+	 * An implementation of ActionListener, for use with the start button on the GUI.
+	 */
     public class StartListener implements ActionListener{
+
+		/**
+		 * On action performed checks if model is running, if not starts the simulation, or if it has finished restarts the sim.
+		 * 
+		 * @param The event on the start button.
+		 */
         public void actionPerformed(ActionEvent e){
-        	//do not attempt to restart an active sim
-            if(!model.isAlive()){
-                if(model.getState() != Thread.State.TERMINATED){
-						model.start();
+        	
+            if(!model.isAlive()){ // If the simulation is running do nothing
+                if(model.getState() != Thread.State.TERMINATED){ // If the thread hasnt been terminated already 
+						model.start(); // start the simulation
 					}
-                else {
+                else { // else if the thread has been stopped then we shoud reset the simulation
                 	Clock.getInstance().resetClock();
-                	FlightList.reset();
+                	FlightList.reset(); // Passenger list loads flightlist on reset so needs to go before/
                 	PassengerList.reset();
                 	
 					model = new Simulation();
                 	model.start();
                 	view.setupGui(model);
-                	// TODO check log is reset!
 					view.addStartListener( new StartListener() );
 					view.addSetSpeedListener( new setSpeedListener());
 					
@@ -81,8 +97,17 @@ public class Controller{
         }
 	}
 	
-	// inner class SetListener responds when user sets time
+	/**
+	 * An implementation of ChangeListener, for use with the change speed slider on the GUI.
+	 */
 	public class setSpeedListener implements ChangeListener {
+		/**
+		 * If the state is changed, get the value from the slider and apply to the simulation speed.
+		 * Loops through all the check-in desks and interrupts their threads to wake them if they are sleeping,
+		 * this causes them to re-evaluate how long they need to sleep for to take into account the new speed of the simulation.
+		 * 
+		 * @param the change event performed on the JSlider.
+		 */
 		public void stateChanged(ChangeEvent e) {
 			Clock myClock = Clock.getInstance();
 			JSlider mySlider = (JSlider)e.getSource();
