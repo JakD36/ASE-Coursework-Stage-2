@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
 
-import ase2.QueueHandler;
 import ase2.interfaces.Observer;
 import ase2.interfaces.Subject;
 import ase2.simulation.Clock;
@@ -12,9 +11,9 @@ import ase2.simulation.Logging;
 import ase2.simulation.Simulation;
 
 public class SecurityOfficer extends Thread implements Subject {
-	long observeTime = 60 * Clock.SECOND * 2; //the time taken to observe a passenger
-	long questionTime = 60 * Clock.SECOND * 10; //the time taken to interrogate a passenger
-	long detainTime = 60 * Clock.SECOND * 7; //the time taken to detain a passenger
+	long observeTime = Clock.SECONDS_IN_MINUTE * Clock.MS_IN_SECOND * 2; //the time taken to observe a passenger
+	long questionTime = Clock.SECONDS_IN_MINUTE * Clock.MS_IN_SECOND * 10; //the time taken to interrogate a passenger
+	long detainTime = Clock.SECONDS_IN_MINUTE * Clock.MS_IN_SECOND * 7; //the time taken to detain a passenger
 	Clock clock = Clock.getInstance(); //get the clock singleton instance
 	QueueHandler queues; //the QueueHandler 
 	HashSet<Passenger> alreadyObserved = new HashSet<Passenger>(); //to ensure Passengers aren't observed twice

@@ -12,9 +12,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EtchedBorder;
 import javax.swing.table.DefaultTableModel;
 
-import ase2.QueueHandler;
 import ase2.interfaces.Observer;
 import ase2.model.Passenger;
+import ase2.model.QueueHandler;
 
 public class QueueDisplay extends JPanel 
 	implements Observer {
