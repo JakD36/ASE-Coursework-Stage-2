@@ -9,15 +9,16 @@ import javax.swing.JPanel;
 import javax.swing.SwingWorker;
 
 import ase2.simulation.Clock;
+import ase2.simulation.Simulation;
 
 public class ClockDisplay extends JPanel {
 	private static final long serialVersionUID = 1L;
 	JLabel face;
-	
+
 	//copy of the clock instance
 	Clock clock = Clock.getInstance();
 	
-	public ClockDisplay() {
+	public ClockDisplay(Simulation sim) {
 		this.setLayout(new GridLayout(1,1));
 		
 		
@@ -29,7 +30,7 @@ public class ClockDisplay extends JPanel {
 		//stop clock resizing as length of characters changes
 		face.setMinimumSize(new Dimension(50,10));
 		
-		//update time
+		//update time on GUI thread
 		new SwingWorker<Void, String>() {
 
 			@Override
@@ -41,18 +42,10 @@ public class ClockDisplay extends JPanel {
 			
 			
 			protected void process(List <String> updates) {
-				face.setText("<html><font color='green'>" + updates.get(updates.size() - 1) + "</font></html>");
+				//only update if sim is active
+				if(sim.getState() != Thread.State.TERMINATED)
+					face.setText("<html><font color='green'>" + updates.get(updates.size() - 1) + "</font></html>");
 			}
 		}.execute();
-		
-
-	}
-	
-	/**
-	 * Set time in milliseconds
-	 * @param time in milliseconds
-	 */
-	public void updateTime(int time) {
-		
 	}
 }

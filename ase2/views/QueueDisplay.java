@@ -12,9 +12,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EtchedBorder;
 import javax.swing.table.DefaultTableModel;
 
-import ase2.QueueHandler;
 import ase2.interfaces.Observer;
 import ase2.model.Passenger;
+import ase2.model.QueueHandler;
 
 public class QueueDisplay extends JPanel 
 	implements Observer {
@@ -31,9 +31,13 @@ public class QueueDisplay extends JPanel
 	//the QueueHandler this QueueDisplay represents
 	QueueHandler queueHandler;
 	
+	int queueId;
+	
 	private static final long serialVersionUID = 1L;
 	
-	public QueueDisplay(QueueHandler queueHandler) {
+	public QueueDisplay(QueueHandler queueHandler, int queueId) {
+		this.queueId = queueId;
+		
 		queueHandler.registerObserver(this);
 		
 		//set layout
@@ -62,28 +66,33 @@ public class QueueDisplay extends JPanel
 
 	@Override
 	public synchronized void update() {
-		//create a new model to clear old data
-		model = new DefaultTableModel(0, 2);
-		model.setColumnIdentifiers(labels);		
-		
-		//get a copy of the latest list of Passengers
-		LinkedList<Passenger> currentQueue = queueHandler.getCurrentQueue();
-		
-		//add the Passengers to the new model
-		for(Passenger p : currentQueue) {
-			model.addRow(new String[] {p.getBookingRefCode(), p.getFlight().getFlightCode()});
-		}
-		
-		//if their are no Passengers, create a placeholder
-		if(currentQueue.size() < 1)
-			model.addRow(new String[] {"empty", "empty"});
-		
-		//the model must be update from the GUI thread by creating 
-		//an anonymous object implementing runnable
-		
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
+				//create a new model to clear old data
+				model = new DefaultTableModel(0, 2);
+				model.setColumnIdentifiers(labels);		
+				
+				
+				//get a copy of the latest list of Passengers
+				LinkedList<Passenger> currentQueue = queueHandler.getCurrentQueue(queueId);
+				
+				
+				//add the Passengers to the new model
+				//get lock
+				synchronized(currentQueue) {
+					for(Passenger p : currentQueue) {
+						model.addRow(new String[] {p.getBookingRefCode(), p.getFlight().getFlightCode()});
+					}
+				}
+				
+				//if their are no Passengers, create a placeholder
+				if(currentQueue.size() < 1)
+					model.addRow(new String[] {"empty", "empty"});
+				
+				//the model must be update from the GUI thread by creating 
+				//an anonymous object implementing runnable
+		
 				//update the table with the new model		
 				table.setModel(model);
 			}

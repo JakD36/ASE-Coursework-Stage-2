@@ -249,4 +249,8 @@ public class PassengerList {
 	public int getTotalPassengers() {
 		return passengersNotCheckedIn.size() + passengersCheckedIn.size();
 	}
+	
+	public static synchronized void reset() {
+		instance = new PassengerList();
+	}
 }

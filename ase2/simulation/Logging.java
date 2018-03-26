@@ -51,7 +51,7 @@ public class Logging
 	
 	/*
 	 * Returns the current number of recorded events
-	 * 
+	 * TODO this isnt javadoc style
 	 * Return: number of the current events
 	 */
 	public int getNumberOfEvents()
@@ -68,16 +68,19 @@ public class Logging
 		
 		synchronized(this.events) 
 		{
-			for (String e : this.events) {
-				event_str.append(e);
+			if (!this.events.isEmpty())
+			{
+				for (String e : this.events) {
+					event_str.append(e);
+				}
+				
+				File logFile = new File(Logging.FILENAME);
+		
+				BufferedWriter writer = new BufferedWriter(new FileWriter(logFile));
+			    writer.write(event_str.toString());
+			    writer.close();
 			}
-			
-			File logFile = new File(Logging.FILENAME);
-	
-			BufferedWriter writer = new BufferedWriter(new FileWriter(logFile));
-		    writer.write(event_str.toString());
-		    writer.close();
-		    
+		    this.counter = 1;
 		    this.events.clear();
 		}
 	

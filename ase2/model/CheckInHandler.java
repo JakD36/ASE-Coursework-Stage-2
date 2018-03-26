@@ -2,7 +2,7 @@ package ase2.model;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
-import ase2.QueueHandler;
+import ase2.exceptions.DepartedFlightException;
 import ase2.exceptions.IllegalReferenceCodeException;
 import ase2.interfaces.Observer;
 import ase2.interfaces.Subject;
@@ -16,16 +16,18 @@ import ase2.simulation.Logging;
 
 
 public class CheckInHandler extends Thread implements Subject {
-	
 	public boolean open = true;
 	private QueueHandler queue;
 	private PassengerList passengers;
 	private FlightList flights;
-	long processTime = 10*60*1000; // time in ms to 5 minutes
-	String status = "started";
-	long ClosureTime = 12*3600*1000;
+	long processTime = 10*Clock.SECONDS_IN_MINUTE*Clock.MS_IN_SECOND; // time in ms to 5 minutes
+	final long numberOfCheckInStages = 3; // there are 3 stages to check in, check details, proces passenger, show results so need to split process time between these
+	volatile String status = "started<br/>";
+	long ClosureTime = FlightList.getInstance().getLastDepartureTime();
 	Clock simClock;
-
+	double totalFees;
+	int queueId;
+	volatile Passenger currentPassenger = null;
 
 	ArrayList<Observer> observers = new ArrayList<Observer>();
 	
@@ -34,54 +36,68 @@ public class CheckInHandler extends Thread implements Subject {
 	 * Instantiates a {@link PassengerList} object, and populates the collections of passengers and flights
 	 * using the loadFlights and loadPassengers methods.
 	 */
-	public CheckInHandler(QueueHandler queue) {
+	public CheckInHandler(QueueHandler queue, int queueId) {
+		this.queueId = queueId;
 		//get the instance of FlightList
 		flights = FlightList.getInstance();
 		passengers = PassengerList.getInstance();
 		this.queue = queue;
 		simClock = Clock.getInstance();
 	}
+
+	/**
+	 * Gets the time the desk closes.
+	 * 
+	 * @return the time in ms in simulation time that the desk should close.
+	 */
 	public synchronized long getClosureTime(){
 		return ClosureTime;
 	}
+
+	/**
+	 * Overrides the run method of Thread, This is the main loop for the check in desk.
+	 */
 	public void run(){
 		//tweaked so GUI can update that the desk is closed
+		// While time hasnt passed the desks closure time and there are still passengers left to enter the system
 		while(simClock.getCurrentTime()<ClosureTime
-				&& PassengerList.getInstance().getNotCheckedIn().size() > 0){// ){
-			
-			
+				&& PassengerList.getInstance().getNoNotQueued() > 0){// ){
+
 			Logging log = Logging.getInstance();
 			
+			Passenger nextPassenger=null;
 			
 			try{
-				Passenger nextPassenger = queue.removeNextPassenger();
+				nextPassenger = queue.removeNextPassenger(queueId); // get the next passenger from the queue 
 				if(nextPassenger != null) {
-					if(checkDetails(nextPassenger.getBookingRefCode(), nextPassenger.getLastName())){
+					if(checkDetails(nextPassenger.getBookingRefCode(), nextPassenger.getLastName())){ // check the details of the passenger if they match move on to next stage
 						
+
+						// Assign random baggage dimensions to the passenger and baggage weight
 						Random rand = new Random();
 						nextPassenger.setBaggageWeight(rand.nextFloat()*40);
 						float [] baggageDimensions = {
-								rand.nextFloat()*70, rand.nextFloat()*60, rand.nextFloat()*40 
+								rand.nextFloat()*70, rand.nextFloat()*60, rand.nextFloat()*40 // TODO correct units if not doen already
 						};
-						
 						nextPassenger.setBaggageDimensions(baggageDimensions);
 						
-						
+						// process the passenger, adds them to their flight and calculates any fees						
 						float fee = processPassenger(nextPassenger.getBookingRefCode(), 
 						nextPassenger.getBaggageDimensions(), nextPassenger.getBaggageWeight());
-	
+						
+
+						// logs the event
 						log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in successfully to flight "+nextPassenger.getFlight().getFlightCode()+" and is charged £"+fee+" at time "+simClock.getTimeString());
-						setStatus("checked in successfully and is charged £"+fee);				
 						
-						notifyObservers();
-						// Put the thread to sleep for a third of the process time to display they are checked in
-						try { 
-							long sleepTime = (processTime/3)/simClock.getSpeed();
-							Thread.sleep(sleepTime);
-						} catch (InterruptedException i) {
-							System.out.println("Desk was interupted from displaying fee");
-						}
+						// Sets the status of the desk for use in the GUI display
+						setStatus("checked in successfully and is charged:<br/> &pound;"+ String.format("%.2f", fee));	
+						totalFees += fee;		// adds to the total fees the desk has collected
 						
+						notifyObservers(); // Notify the desks observers the status has changed
+						
+						// Calculate the time in the simulation the desk should be done with this stage of the check in process by
+						long sleepTil = simClock.getCurrentTime()+processTime/numberOfCheckInStages;
+						threadSleep(sleepTil); // put the thread to sleep until this time has passed
 					}
 					else{
 						log.writeEvent(nextPassenger.getFirstName()+" "+nextPassenger.getLastName()+" checked in failed at time" + simClock.getTimeString());
@@ -92,16 +108,44 @@ public class CheckInHandler extends Thread implements Subject {
 			}catch(NoSuchElementException e){
 				setStatus("Theres no one in the queue to process!");
 				notifyObservers();
-				System.out.println("Theres no one in the queue to process!");
+				// System.out.println("Theres no one in the queue to process!");
+			}catch(DepartedFlightException dfe) {
+				log.writeEvent(String.format("Passenger %s %s has arrived too late", nextPassenger.getFirstName(),nextPassenger.getLastName()));
+				setStatus(String.format("Passenger %s %s has arrived too late", nextPassenger.getFirstName(),nextPassenger.getLastName()));
 			}
 			// setStatus("Waiting for next customer!");
 			// notifyObservers();
 		}
 
-		setStatus("closed");
+		setStatus("closed.<br/>Collected: "+String.format("&pound;%.2f", totalFees));
 		notifyObservers();
 	}
 	
+
+
+	/**
+	 * Puts the thread to sleep until the simulation time has passed sleepTil.
+	 * Uses the difference in sleepTil and the current simulation time 
+	 * divided by the simulations current speed to get the actual time to put the thread to sleep.
+	 * If the speed is changed this thread is interupted, if the sim hasnt passed sleep til then the thread is put back to sleep calling threadSleep again.
+	 *	
+	 * 
+	 * @param the simulation time in milliseconds that the thread should sleep until
+	 */
+	synchronized private void threadSleep(long sleepTil){
+		Clock myClock = Clock.getInstance();
+		long sleepTime = (sleepTil-myClock.getCurrentTime())/simClock.getSpeed();
+		try { 
+			Thread.sleep(sleepTime);
+		} catch (InterruptedException e) {
+			if(myClock.getCurrentTime()<sleepTil){
+				threadSleep(sleepTil);
+			}
+		}
+
+	}
+
+
 	/**
 	 * Checks the details of the passenger who wants to check in.
 	 * Checks the passengers name to the provided booking reference. As well as checking to make sure that
@@ -113,20 +157,25 @@ public class CheckInHandler extends Thread implements Subject {
 	 * @throws	IllegalReferenceCodeException	If the booking reference does match a passenger that is to be checked in or any passenger on the system.
 	 */
 	public synchronized boolean checkDetails(String bookingReference, String lastName) throws IllegalReferenceCodeException{
-		setStatus("checking details of " + bookingReference);
+		setStatus("checking details of " + bookingReference + "<br/>");
 		notifyObservers();
 		Clock simClock = Clock.getInstance();
 		// put the desk to sleep to take into account hte time to process passenger
-		try { 
-			long sleepTime = (processTime/3)/simClock.getSpeed();
-			Thread.sleep(sleepTime);
-			
-		} catch (InterruptedException e) {
-			System.out.println("Desk was interupted from processing passenger");
-		}
+
+
+		// Put the thread to sleep to take into account the time to process the stage of check in
+		long sleepTil = simClock.getCurrentTime()+processTime/numberOfCheckInStages;
+		threadSleep(sleepTil);
 
 		if( passengers.getNotCheckedIn().containsKey(bookingReference) ){	// Check that the booking reference provided matches, a passenger to be checked in
 			//Strings should compared with .equals in Java
+			
+			Flight flight = passengers.getNotCheckedIn().get(bookingReference).getFlight();
+			
+			if (flight.hasDeparted(simClock.getCurrentTime())) {
+				throw new DepartedFlightException(flight);
+			}
+			
 			if(passengers.getNotCheckedIn().get(bookingReference).getLastName().equals(lastName)){	// Checks if the passenger 
 				return true; // Return true to show that the details match with a passenger to be checked in.
 			}
@@ -135,7 +184,7 @@ public class CheckInHandler extends Thread implements Subject {
 			}
 		}
 		else if(passengers.getCheckedIn().containsKey(bookingReference)){ // Throw an exception if the matching passenger is already checked in
-			setStatus(bookingReference + "Is already checked in!");
+			setStatus(bookingReference + "Is already checked in!<br/><br/>");
 			notifyObservers();
 			throw new IllegalReferenceCodeException(bookingReference+": Is already checked in.");
 			
@@ -161,17 +210,14 @@ public class CheckInHandler extends Thread implements Subject {
 	 * @throws	IllegalReferenceCodeException	If there is no passenger with a matching booking reference code.
 	 */
 	public synchronized float processPassenger(String bookingReference, float[] dimensions, float weight) throws IllegalReferenceCodeException{
-		setStatus("processing passenger " + bookingReference);
+		setStatus("processing passenger " + bookingReference + "<br/>");
 		notifyObservers();
 		Clock simClock = Clock.getInstance();
 		// put the desk to sleep to take into account hte time to process passenger
-		
-		try { 
-			long sleepTime = (processTime/3)/simClock.getSpeed();
-			Thread.sleep(sleepTime);
-		} catch (InterruptedException e) {
-			System.out.println("Desk was interupted from processing passenger");
-		}
+
+		// Put the thread to sleep to take into account the time to process the stage of check in
+		long sleepTil = simClock.getCurrentTime()+processTime/numberOfCheckInStages;
+		threadSleep(sleepTil);
 		
 		float fee;	// Fee due from passenger, calculated from the weight Fee, volume fee and the multiplier for the passengers flight
 		float weightFee = 0f, volFee = 0f;
@@ -290,12 +336,22 @@ public class CheckInHandler extends Thread implements Subject {
 		}
 	}
 	
-	public synchronized String getStatus() {
+	/**
+	 * Get the current status.
+	 * 
+	 * String is immutable, so this doesn't need synchronised.
+	 * 
+	 * @return the current status
+	 */
+	public String getStatus() {
 		return status;
 	}
-	
+	/**
+	 * Sets the status of this desk
+	 * 
+	 * @param the string with information on the status of the desk.
+	 */
 	public synchronized void setStatus(String status) {
-		
 		this.status = status;
 	}
 }

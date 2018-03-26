@@ -3,8 +3,8 @@ package ase2.views;
 import java.awt.GridLayout;
 
 import javax.swing.BorderFactory;
-import javax.swing.JEditorPane;
 import javax.swing.JPanel;
+import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EtchedBorder;
 
@@ -14,7 +14,7 @@ import ase2.model.CheckInHandler;
 public class DeskDisplay extends JPanel 
 	implements Observer {
 
-	JEditorPane data;
+	JTextPane data;
 	private static final long serialVersionUID = 1L;
 	int id;
 	CheckInHandler desk;
@@ -31,11 +31,11 @@ public class DeskDisplay extends JPanel
 		//add a border to the panel
 		setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
 
-		data = new JEditorPane();
+		data = new JTextPane();
 		data.setContentType("text/html");
 		data.setEditable(false);
-		data.setText("<html><p align = 'center'>Desk # " + id 
-				+ " is " + desk.getStatus() + ".</p></html>");
+		data.setText("<html><p align = 'center'>Desk #" + id 
+				+ " is<br/>" + desk.getStatus() + ".</p></html>");
 
 		add(data);
 	}
@@ -46,8 +46,8 @@ public class DeskDisplay extends JPanel
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				data.setText("<html><p align = 'center'>Desk # " + id 
-						+ " is " + desk.getStatus() + ".</p></html>");
+				data.setText("<html><p align = 'center'>Desk #" + id 
+						+ " is<br/>" + desk.getStatus() + ".</p></html>");
 			}
 		});
 	}
